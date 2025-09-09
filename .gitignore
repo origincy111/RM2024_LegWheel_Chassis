@@ -55,3 +55,6 @@ build
 settings.json
 
 *.csv
+slprj/
+*.slx
+*.slxc
