@@ -12,7 +12,7 @@
  *  All Rights Reserved.
  *******************************************************************************
  */
-/* Includes ------------------------------------------------------------------*/
+ /* Includes ------------------------------------------------------------------*/
 #include "infantry_chassis.h"
 
 #include "board_comm.h"
@@ -35,13 +35,23 @@ bool ui_init = false;
 /* External variables --------------------------------------------------------*/
 /* Private function prototypes -----------------------------------------------*/
 
-void ChassisMotorInit() {
+/**
+ * @brief 底盘初始化
+ */
+void ChassisInit() {
+  //遥控器初始化
   remote.Init(&huart3);
+  //裁判系统初始化
   referee.Init(&huart5);
+  //底盘电机初始化
   chassis.MotorInit();
+  //板间通信初始化
   board_comm.Init(&hcan1, 0x101);
+  //电容初始化
   cap.Init(&hcan2, 0x600);
+  //底盘pid初始化
   chassis.PidInit();
+  //卡尔曼速度观测器初始化
   chassis.SpeedEstInit();
 }
 
@@ -49,34 +59,47 @@ void ChassisCalcTask() {
   chassis.Controller();
   if (referee.game_robot_state_.power_management_chassis_output == 1 &&
       referee_last_state == 0 && cnt_flag == 0) {
-    cnt_flag = 1;
-    referee_ready = 0;
+    cnt_flag = 1;         //计数标志位置1
+    referee_ready = 0;    //裁判系统标志位置0
   }
+  //开始计数
   if (cnt_flag) {
     cnt++;
     if (cnt > 3500) {
-      cnt_flag = 0;
+      cnt_flag = 0;       //复活？
       referee_ready = 1;
       cnt = 0;
     }
   }
-  if (board_comm.GetReadyFlag() == 1 &&
-      referee.game_robot_state_.power_management_chassis_output == 1 &&
-      referee_ready) {
-    chassis.SetMotorTor();
-  } else {
+  // 仅当云台就绪时，向底盘电机发送指令
+  // 调试所需要先注释掉（无云台）
+  // if (board_comm.GetReadyFlag() == 1 &&
+  //     referee.game_robot_state_.power_management_chassis_output == 1 &&
+  //     referee_ready) {
+
+    //并非直驱，又双叒叕是封装，仅仅传参进电机类
+  chassis.SetMotorTor();
+
+  if (remote.GetS2() != 2)
     chassis.StopMotor();
-  }
+
+  // }else {
+  //   //刹车
+  //   chassis.StopMotor();
+  // }
   referee_last_state =
-      referee.game_robot_state_.power_management_chassis_output;
+    referee.game_robot_state_.power_management_chassis_output;
 }
 
+
+//超电管理任务
 void CapTask() {
   cap.SetPower(referee.game_robot_state_.chassis_power_limit);
   cap.AccessPoll();
   cap.SetCapState();
 }
 
+//宇树A1电机驱动函数
 void UnitreeMotorTask() {
   chassis.lf_joint_.Ctrl();
   chassis.rf_joint_.Ctrl();
@@ -85,14 +108,18 @@ void UnitreeMotorTask() {
   chassis.rb_joint_.Ctrl();
 }
 
+//mf9025驱动任务
 void WheelMotorTask() {
-  chassis.l_wheel_.Send();
-  chassis.r_wheel_.Send();
+  chassis.l_wheel_.SendTor();
+  chassis.r_wheel_.SendTor();
 }
 
+//板间通信任务
 void CtrlCommTask() {
-  board_comm.Send();
+  //board_comm.Send();
+
 }
+
 
 void UITask() {
   if (ui_init == false || board_comm.GetRefreshIDFlag()) {
@@ -153,7 +180,8 @@ void UITask() {
     UI.PushUp_Graphs(1, &UI.UI_Graph1[1], referee.game_robot_state_.robot_id);
     osDelay(60);
     ui_init = true;
-  } else {
+  }
+  else {
     int16_t cap_volt = 1540 + cap.GetVolt() / 10;
     UI.Draw_Line(&UI.UI_Graph1[1].Graphic[0], (char*)"132", UI_Graph_Change, 3,
                  UI_Color_Green, 30, 1540, 790, cap_volt, 790);
@@ -170,16 +198,19 @@ void UITask() {
         UI.Draw_Rectangle(&UI.UI_Graph7[0].Graphic[6], (char*)"126",
                           UI_Graph_Change, 1, UI_Color_Green, 3, 557, 289, 1355,
                           769);
-      } else if (board_comm.GetEnergy() == 3) {
+      }
+      else if (board_comm.GetEnergy() == 3) {
         UI.Draw_Rectangle(&UI.UI_Graph7[0].Graphic[6], (char*)"126",
                           UI_Graph_Change, 1, UI_Color_Yellow, 3, 557, 289, 1355,
                           769);
-      } else if (board_comm.GetEnergy() == 4) {
+      }
+      else if (board_comm.GetEnergy() == 4) {
         UI.Draw_Rectangle(&UI.UI_Graph7[0].Graphic[6], (char*)"126",
                           UI_Graph_Change, 1, UI_Color_Pink, 3, 557, 289, 1355,
                           769);
       }
-    } else {
+    }
+    else {
       UI.Draw_Rectangle(&UI.UI_Graph7[0].Graphic[6], (char*)"126",
                         UI_Graph_Change, 1, UI_Color_White, 3, 557, 289, 1355,
                         769);
@@ -189,21 +220,24 @@ void UITask() {
     if (board_comm.GetFricFlag() == 1) {
       UI.Draw_Rectangle(&UI.UI_Graph5[0].Graphic[0], (char*)"100", UI_Graph_ADD,
                         1, UI_Color_Green, 5, 872, 840, 963, 885);
-    } else {
+    }
+    else {
       UI.Draw_Rectangle(&UI.UI_Graph5[0].Graphic[0], (char*)"100", UI_Graph_Del,
                         1, UI_Color_Green, 5, 872, 840, 963, 885);
     }
     if (board_comm.GetCapFlag()) {
       UI.Draw_Rectangle(&UI.UI_Graph5[0].Graphic[2], (char*)"102", UI_Graph_ADD,
                         1, UI_Color_Green, 5, 1103, 840, 1192, 885);
-    } else {
+    }
+    else {
       UI.Draw_Rectangle(&UI.UI_Graph5[0].Graphic[2], (char*)"102", UI_Graph_Del,
                         1, UI_Color_Green, 5, 1103, 840, 1192, 885);
     }
     if (referee.rfid_status_.rfid_status > 0) {
       UI.Draw_Rectangle(&UI.UI_Graph5[0].Graphic[1], (char*)"101", UI_Graph_ADD,
                         1, UI_Color_Green, 5, 991, 840, 1080, 885);
-    } else {
+    }
+    else {
       UI.Draw_Rectangle(&UI.UI_Graph5[0].Graphic[1], (char*)"101", UI_Graph_Del,
                         1, UI_Color_Green, 5, 991, 840, 1080, 885);
     }
@@ -211,7 +245,8 @@ void UITask() {
       UI.Draw_Rectangle(&UI.UI_Graph5[0].Graphic[3], (char*)"103",
                         UI_Graph_Change, 1, UI_Color_Purplish_red, 5, 731, 840,
                         842, 885);
-    } else {
+    }
+    else {
       UI.Draw_Rectangle(&UI.UI_Graph5[0].Graphic[3], (char*)"103",
                         UI_Graph_Change, 1, UI_Color_Green, 5, 731, 840, 842,
                         885);
@@ -219,22 +254,23 @@ void UITask() {
     if (referee.projectile_allowance.projectile_allowance_17mm <= 10) {
       UI.Draw_Rectangle(&UI.UI_Graph5[0].Graphic[4], (char*)"104", UI_Graph_ADD,
                         1, UI_Color_Orange, 5, 114, 720, 257, 760);
-    } else {
+    }
+    else {
       UI.Draw_Rectangle(&UI.UI_Graph5[0].Graphic[4], (char*)"104", UI_Graph_Del,
                         1, UI_Color_Orange, 5, 114, 720, 257, 760);
     }
     UI.PushUp_Graphs(5, &UI.UI_Graph5[0], referee.game_robot_state_.robot_id);
     osDelay(40);
     int16_t sin_theta =
-        arm_sin_f32(chassis.yaw_motor_.GetAngle() * DEGREE_2_RAD) * 70;
+      arm_sin_f32(chassis.yaw_motor_.GetAngle() * DEGREE_2_RAD) * 70;
     int16_t cos_theta =
-        arm_cos_f32(chassis.yaw_motor_.GetAngle() * DEGREE_2_RAD) * 70;
+      arm_cos_f32(chassis.yaw_motor_.GetAngle() * DEGREE_2_RAD) * 70;
     int16_t sin_theta_90 =
-        arm_sin_f32((chassis.yaw_motor_.GetAngle() + 90.0f) * DEGREE_2_RAD) *
-        70;
+      arm_sin_f32((chassis.yaw_motor_.GetAngle() + 90.0f) * DEGREE_2_RAD) *
+      70;
     int16_t cos_theta_90 =
-        arm_cos_f32((chassis.yaw_motor_.GetAngle() + 90.0f) * DEGREE_2_RAD) *
-        70;
+      arm_cos_f32((chassis.yaw_motor_.GetAngle() + 90.0f) * DEGREE_2_RAD) *
+      70;
     UI.Draw_Line(&UI.UI_Graph2[0].Graphic[0], (char*)"130", UI_Graph_Change, 3,
                  UI_Color_Purplish_red, 4, 737 + sin_theta_90,
                  124 + cos_theta_90, 737 - sin_theta_90, 124 - cos_theta_90);

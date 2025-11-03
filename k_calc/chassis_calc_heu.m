@@ -1,4 +1,4 @@
-%LQR求解
+%%LQR求解
 clear;
 
 syms theta dot_theta ddot_theta;

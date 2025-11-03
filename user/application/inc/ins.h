@@ -12,7 +12,7 @@
  *  All Rights Reserved.
  *******************************************************************************
  */
-/* Define to prevent recursive inclusion -------------------------------------*/
+ /* Define to prevent recursive inclusion -------------------------------------*/
 #ifndef __INS_TASK_H
 #define __INS_TASK_H
 
@@ -25,15 +25,15 @@
 
 /* Exported macro ------------------------------------------------------------*/
 /* Exported constants --------------------------------------------------------*/
-#define X 0
-#define Y 1
-#define Z 2
+#define X 0     // pitch方向
+#define Y 1     // roll方向
+#define Z 2     // yaw方向
 
 #define INS_TASK_PERIOD 1
 
 /* Exported types ------------------------------------------------------------*/
-typedef struct
-{
+typedef struct {
+    //注释掉的成员是中间量
     float q[4];  // 四元数估计值
 
     float Gyro[3];  // 角速度
@@ -44,7 +44,7 @@ typedef struct
 
     float AccelLPF;  // 加速度低通滤波系数
     float DGyroLPF;
-    
+
     // 加速度在绝对系的向量表示
     float xn[3];
     float yn[3];
@@ -60,8 +60,7 @@ typedef struct
     float YawTotalAngle;
 } INS_t;
 
-typedef struct
-{
+typedef struct {
     uint8_t flag;
 
     float scale[3];
@@ -77,11 +76,11 @@ extern INS_t INS;
 
 void IMU_Temperature_Ctrl(void);
 
-void QuaternionUpdate(float *q, float gx, float gy, float gz, float dt);
-void QuaternionToEularAngle(float *q, float *Yaw, float *Pitch, float *Roll);
-void EularAngleToQuaternion(float Yaw, float Pitch, float Roll, float *q);
-void BodyFrameToEarthFrame(const float *vecBF, float *vecEF, float *q);
-void EarthFrameToBodyFrame(const float *vecEF, float *vecBF, float *q);
+void QuaternionUpdate(float* q, float gx, float gy, float gz, float dt);
+void QuaternionToEularAngle(float* q, float* Yaw, float* Pitch, float* Roll);
+void EularAngleToQuaternion(float Yaw, float Pitch, float Roll, float* q);
+void BodyFrameToEarthFrame(const float* vecBF, float* vecEF, float* q);
+void EarthFrameToBodyFrame(const float* vecEF, float* vecBF, float* q);
 
 #endif
 
@@ -89,14 +88,14 @@ void EarthFrameToBodyFrame(const float *vecEF, float *vecBF, float *q);
 extern "C" {
 #endif
 
-/* Includes ------------------------------------------------------------------*/
-/* Exported macro ------------------------------------------------------------*/
-/* Exported constants --------------------------------------------------------*/
-/* Exported types ------------------------------------------------------------*/
-/* Exported variables --------------------------------------------------------*/
-/* Exported function prototypes ----------------------------------------------*/
-void INS_Init(void);
-void INS_Task(void);
+    /* Includes ------------------------------------------------------------------*/
+    /* Exported macro ------------------------------------------------------------*/
+    /* Exported constants --------------------------------------------------------*/
+    /* Exported types ------------------------------------------------------------*/
+    /* Exported variables --------------------------------------------------------*/
+    /* Exported function prototypes ----------------------------------------------*/
+    void INS_Init(void);
+    void INS_Task(void);
 
 #ifdef __cplusplus
 }

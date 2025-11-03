@@ -40,23 +40,28 @@ const float k_m_wheel = 0.47f;
  * @param p 5连杆和腿的参数
  */
 void Vmc::LegCalc() {
-  coord_[0] = x_b_ = k_thigh_len * arm_cos_f32(phi1_);
-  coord_[1] = y_b_ = k_thigh_len * arm_sin_f32(phi1_);
-  coord_[4] = x_d_ = k_joint_len + k_thigh_len * arm_cos_f32(phi4_);
-  coord_[5] = y_d_ = k_thigh_len * arm_sin_f32(phi4_);
+  x_b_ = k_thigh_len * arm_cos_f32(phi1_);
+  y_b_ = k_thigh_len * arm_sin_f32(phi1_);
+  x_d_ = k_joint_len + k_thigh_len * arm_cos_f32(phi4_);
+  y_d_ = k_thigh_len * arm_sin_f32(phi4_);
   bd_ = powf(x_d_ - x_b_, 2) + powf(y_d_ - y_b_, 2);
   a0_ = 2 * k_calf_len * (x_d_ - x_b_);
   b0_ = 2 * k_calf_len * (y_d_ - y_b_);
 
   phi2_ = 2 * atan2f(b0_ + sqrtf(powf(a0_, 2) + powf(b0_, 2) - powf(bd_, 2)),
                      a0_ + bd_);
-  coord_[2] = x_c_ = x_b_ + k_calf_len * arm_cos_f32(phi2_);
-  coord_[3] = y_c_ = y_b_ + k_calf_len * arm_sin_f32(phi2_);
+  
+  //C点直角坐标
+  x_c_ = x_b_ + k_calf_len * arm_cos_f32(phi2_);
+  y_c_ = y_b_ + k_calf_len * arm_sin_f32(phi2_);
 
+  //C点极坐标
   phi0_ = atan2f(y_c_, x_c_ - k_joint_len / 2);
   l0_ = sqrtf(powf(x_c_ - k_joint_len / 2, 2) + powf(y_c_, 2));
+
   phi3_ = atan2f(y_c_ - y_d_, x_c_ - x_d_);
   theta_ = phi0_ - 0.5 * PI - phi_;
+  //高度
   height_ = l0_ * arm_cos_f32(theta_);
 
   static float predict_dt = 0.0001f;
@@ -99,13 +104,16 @@ void Vmc::LegCalc() {
 }
 
 /**
- * @brief Calculate the torque for Vmc.
+ * @brief 通过雅可比矩阵计算关节力矩
  */
 void Vmc::TorCalc() {
   T1_ = j_[0] * F_ + j_[1] * Tp_;
   T2_ = j_[2] * F_ + j_[3] * Tp_;
 }
 
+/**
+ * @brief 计算雅可比矩阵
+ */
 void Vmc::Jacobian() {
   float phi32 = arm_sin_f32(phi3_ - phi2_);
   float phi03 = phi0_ - phi3_;
@@ -118,7 +126,11 @@ void Vmc::Jacobian() {
   j_[3] = k_thigh_len * arm_cos_f32(phi02) * arm_sin_f32(phi3_ - phi4_) /
           (l0_ * phi32);
 }
-
+/**
+ * @brief 离地检测
+ *
+ * 通过关节电机反馈的力矩
+ */
 void Vmc::LegForceCalc() {
   float det = j_[0] * j_[3] - j_[1] * j_[2];
   inv_j_[0] = j_[3] / det;

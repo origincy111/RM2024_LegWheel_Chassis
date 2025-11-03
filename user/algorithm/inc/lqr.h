@@ -12,7 +12,7 @@
  *  All Rights Reserved.
  *******************************************************************************
  */
-/* Define to prevent recursive inclusion -------------------------------------*/
+ /* Define to prevent recursive inclusion -------------------------------------*/
 #ifndef __LQR_H_
 #define __LQR_H_
 
@@ -21,7 +21,7 @@
 /* Exported constants --------------------------------------------------------*/
 /* Exported types ------------------------------------------------------------*/
 class Lqr {
- public:
+public:
   void Calc();
   void SetData(const float _dist, const float _speed, const float _phi,
                const float _w_phi, const float _theta, const float _w_theta,
@@ -40,7 +40,7 @@ class Lqr {
   float GetWheelTor() { return T_[0]; };
   float GetLegTor() { return T_[1]; };
 
- private:
+private:
   float dist_, speed_, phi_, w_phi_, theta_, w_theta_, leg_len_;
   float target_speed_, target_dist_, F_N_, T_[2], T_K_[2][6];
 };

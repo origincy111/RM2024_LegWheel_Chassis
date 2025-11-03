@@ -31,8 +31,8 @@ typedef enum {
 
 class DjiMotor {
  public:
-  CanInstance* pdji_motor_instance;
-  void Update();
+  CanInstance* pdji_motor_instance;   //can总线指针
+  void Update();              //Dji读取反馈函数
   void Init(uint32_t _idx, CAN_HandleTypeDef* _phcan, uint8_t _init);
   float GetAngle() { return ang_real_; }
   int GetEncode() { return encode_; }

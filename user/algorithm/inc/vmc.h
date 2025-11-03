@@ -12,11 +12,13 @@
  *  All Rights Reserved.
  *******************************************************************************
  */
-/* Define to prevent recursive inclusion -------------------------------------*/
+ /* Define to prevent recursive inclusion -------------------------------------*/
 #ifndef __VMC_H_
 #define __VMC_H_
 
 /* Includes ------------------------------------------------------------------*/
+#include "arm_math.h"
+#include "ins.h"
 /* Exported macro ------------------------------------------------------------*/
 /* Exported constants --------------------------------------------------------*/
 /* Exported types ------------------------------------------------------------*/
@@ -28,14 +30,14 @@
  * setting and getting various parameters, and storing internal state variables.
  */
 class Vmc {
- public:
+public:
   void LegCalc();
   void Jacobian();
   void TorCalc();
   void LegForceCalc();
   void SetBodyData(const float _phi, const float _acc_z) {
     phi_ = _phi;
-    ddot_z_M_ = _acc_z;
+    ddot_z_M_ = _acc_z - 9.802f * arm_cos_f32(INS.Pitch) * arm_cos_f32(INS.Roll);
   }
   void SetLegData(const float _phi1, const float _w_phi1, const float _phi4,
                   const float _w_phi4, const float _t1, const float _t2) {
@@ -60,13 +62,12 @@ class Vmc {
   float GetPhi2Speed() { return w_phi2_; };
   float GetForceNormal() { return F_N_; };
 
- private:
+private:
   float phi_, phi0_, phi1_, phi4_, w_phi1_, w_phi4_, l0_;
   float theta_, height_, w_theta_, v_height_, dotw_theta_, dotv_height_,
-      w_phi2_, v_l0_, ddot_z_w_, dot_v_l0_, w_phi0_, ddot_z_M_;
+    w_phi2_, v_l0_, ddot_z_w_, dot_v_l0_, w_phi0_, ddot_z_M_;
   float T1_, T2_, F_, Tp_, mea_t1_, mea_t2_, mea_F_, mea_Tp_, F_N_, P_;
   float x_b_, y_b_, x_c_, y_c_, x_d_, y_d_, p_;
-  float coord_[6];  // xb yb xc yc xd yd
   float last_w_theta_, last_v_l0_;
   float phi2_, phi3_;
   float a0_, b0_, bd_;

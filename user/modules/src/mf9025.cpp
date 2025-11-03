@@ -12,7 +12,7 @@
  *  All Rights Reserved.
  *******************************************************************************
  */
-/* Includes ------------------------------------------------------------------*/
+ /* Includes ------------------------------------------------------------------*/
 #include "mf9025.h"
 #include "user_lib.h"
 /* Private macro -------------------------------------------------------------*/
@@ -32,21 +32,28 @@ void Mf9025::Init(CAN_HandleTypeDef* _phcan, uint16_t _id) {
 
 void Mf9025::Update() {
   if (p_motor_instance_->rx_buff[0] == 0xA1) {
+    //电机温度
     temp_ = p_motor_instance_->rx_buff[1];
+    //转矩电流
     iq_ = p_motor_instance_->rx_buff[3] << 8 | p_motor_instance_->rx_buff[2];
+    //电机速度
     speed_ = p_motor_instance_->rx_buff[5] << 8 | p_motor_instance_->rx_buff[4];
+    //编码器位置
     encode_ =
-        p_motor_instance_->rx_buff[7] << 8 | p_motor_instance_->rx_buff[6];
+      p_motor_instance_->rx_buff[7] << 8 | p_motor_instance_->rx_buff[6];
   }
+  //对速度线性滤波
   speed_real_ = 0.15f * speed_real_ + 0.85f * speed_ * 3.1415926f / 180.0f;
 }
 
 void Mf9025::SetTor(float _tor) {
+  //不知道常数怎么算出来的，我算是转矩常数*16.5/2048
   iq_ctrl_ = _tor / 0.00512f;
   iq_ctrl_ = (int16_t)Math::AbsLimit(iq_ctrl_, 2000);
 }
 
-void Mf9025::Send() {
+//力矩发送函数
+void Mf9025::SendTor() {
   uint8_t tx_buff[8];
   tx_buff[0] = 0xA1;
   tx_buff[1] = 0x00;
@@ -59,6 +66,7 @@ void Mf9025::Send() {
   CanSend(p_motor_instance_, tx_buff);
 }
 
+//速度读取接口
 float Mf9025::GetSpeed() {
   return speed_real_;
 }

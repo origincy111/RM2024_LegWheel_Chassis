@@ -12,7 +12,7 @@
  *  All Rights Reserved.
  *******************************************************************************
  */
-/* Includes ------------------------------------------------------------------*/
+ /* Includes ------------------------------------------------------------------*/
 #include "bsp_can.h"
 #include "memory.h"
 #include "stdlib.h"
@@ -20,21 +20,23 @@
 /* Private constants ---------------------------------------------------------*/
 /* Private types -------------------------------------------------------------*/
 /* Private variables ---------------------------------------------------------*/
+
 static int idx;
-static CanInstance *pcan_instance[16] = {NULL};
+static CanInstance* pcan_instance[16] = { NULL };
+
 /* External variables --------------------------------------------------------*/
 /* Private function prototypes -----------------------------------------------*/
 
 /**
- * @brief Registers a CAN instance with the specified initialization configuration.
+ * @brief 使用指定的初始化配置注册 CAN 实例(并非注册，仅仅传参)
  *
- * This function is used to register a CAN instance with the provided initialization configuration.
+ * 此函数用于使用提供的初始化配置注册 CAN 实例
  *
- * @param _pconf Pointer to the CanInitConf structure containing the initialization configuration.
- * @return Pointer to the CanInstance structure representing the registered CAN instance.
+ * @param _pconf 指向包含初始化配置的 CanInitConf 结构的指针
+ * @return 指向表示已注册 CAN 实例的 CanInstance 结构的指针
  */
-CanInstance *pCanRegister(CanInitConf *_pconf)
-{
+CanInstance* pCanRegister(CanInitConf* _pconf) {
+    //不合规的注册请求会卡在死循环
     if (idx >= 16) {
         while (1) {
         }
@@ -47,7 +49,7 @@ CanInstance *pCanRegister(CanInitConf *_pconf)
         }
     }
 
-    CanInstance *p_instance = (CanInstance *)malloc(sizeof(CanInstance));
+    CanInstance* p_instance = (CanInstance*)malloc(sizeof(CanInstance));
     memset(p_instance, 0, sizeof(CanInstance));
 
     p_instance->tx_conf.StdId = _pconf->tx_id;
@@ -65,21 +67,27 @@ CanInstance *pCanRegister(CanInitConf *_pconf)
 }
 
 /**
- * @brief Sends a CAN message.
+ * @brief 发送CAN消息
  *
- * This function sends a CAN message using the specified CAN instance and transmit buffer.
+ * 此函数使用指定的 CAN 实例发送 CAN 消息并传输缓冲区
  *
- * @param _pinstance Pointer to the CAN instance.
- * @param _ptx_buff Pointer to the transmit buffer.
+ * @param _pinstance 指向 CAN 实例的指针
+ * @param _ptx_buff 指向传输缓冲区的指针
+ * @return HAL_StatusTypeDef 状态值
  */
-void CanSend(CanInstance *_pinstance, uint8_t *_ptx_buff)
-{
-    if (HAL_CAN_AddTxMessage(_pinstance->hcan, &_pinstance->tx_conf, _ptx_buff, (uint32_t *)CAN_TX_MAILBOX0) != HAL_OK) {
-        if (HAL_CAN_AddTxMessage(_pinstance->hcan, &_pinstance->tx_conf, _ptx_buff, (uint32_t *)CAN_TX_MAILBOX1) != HAL_OK) {
-            while (1) {
+HAL_StatusTypeDef CanSend(CanInstance* _pinstance, uint8_t* _ptx_buff) {
+    if (_pinstance == NULL || _pinstance->hcan->Instance == NULL) {
+        return HAL_ERROR;
+    }
+    //尝试3个空发送邮箱,失败后返回错误消息
+    if (HAL_CAN_AddTxMessage(_pinstance->hcan, &_pinstance->tx_conf, _ptx_buff, (uint32_t*)CAN_TX_MAILBOX0) != HAL_OK) {
+        if (HAL_CAN_AddTxMessage(_pinstance->hcan, &_pinstance->tx_conf, _ptx_buff, (uint32_t*)CAN_TX_MAILBOX1) != HAL_OK) {
+            if (HAL_CAN_AddTxMessage(_pinstance->hcan, &_pinstance->tx_conf, _ptx_buff, (uint32_t*)CAN_TX_MAILBOX2) != HAL_OK) {
+                return HAL_ERROR;
             }
         }
     }
+    return HAL_OK;
 }
 
 /**
@@ -89,28 +97,26 @@ void CanSend(CanInstance *_pinstance, uint8_t *_ptx_buff)
  * @param _length 数据长度
  * @param _rtr RTR标志位
  */
-void CanSetDlcAndRtr(CanInstance *_pinstance, uint8_t _length, uint8_t _rtr)
-{
+void CanSetDlcAndRtr(CanInstance* _pinstance, uint8_t _length, uint8_t _rtr) {
     _pinstance->tx_conf.DLC = _length;
     _pinstance->tx_conf.RTR = _rtr;
 }
 
 /**
- * @brief Callback function for CAN receive interrupt.
+ * @brief CAN接收中断的回调函数
  *
- * This function is called when a CAN receive interrupt occurs.
- *
- * @param _phcan Pointer to the CAN handle structure.
- * @param _Fifo The FIFO number associated with the interrupt.
+ * 当CAN接收中断发生时，调用此函数
+ * @param _phcan 指向CAN结构体的指针
+ * @param _Fifo 与中断相关的FIFO编号
  */
-static void CanRxCallBack(CAN_HandleTypeDef *_phcan, uint32_t _Fifo)
-{
+static void CanRxCallBack(CAN_HandleTypeDef* _phcan, uint32_t _Fifo) {
     static CAN_RxHeaderTypeDef rx_header;
     uint8_t rx_buff[8];
     while (HAL_CAN_GetRxFifoFillLevel(_phcan, _Fifo)) {
         HAL_CAN_GetRxMessage(_phcan, _Fifo, &rx_header, rx_buff);
         for (uint8_t i = 0; i < 16; i++) {
             if (rx_header.StdId == pcan_instance[i]->rx_id && _phcan == pcan_instance[i]->hcan) {
+                //使用自定义回调函数
                 if (pcan_instance[i]->pCanCallBack != NULL) {
                     pcan_instance[i]->rx_rtr = rx_header.RTR;
                     pcan_instance[i]->rx_len = rx_header.DLC;
@@ -123,12 +129,9 @@ static void CanRxCallBack(CAN_HandleTypeDef *_phcan, uint32_t _Fifo)
 }
 
 /**
- * @brief Callback function called when a message is pending in Rx FIFO 0.
- *
- * @param hcan Pointer to a CAN_HandleTypeDef structure that contains
- *              the configuration information for the specified CAN.
+ * @brief 当RxFIFO0中的消息处于挂起状态时，会调用回调函数
+ * @param hcan 指向包含指定CAN的配置信息的 CAN_HandleTypeDef 结构的指针。
  */
-void HAL_CAN_RxFifo0MsgPendingCallback(CAN_HandleTypeDef *hcan)
-{
+void HAL_CAN_RxFifo0MsgPendingCallback(CAN_HandleTypeDef* hcan) {
     CanRxCallBack(hcan, CAN_RX_FIFO0);
 }

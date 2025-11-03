@@ -1,7 +1,7 @@
 /**
  *******************************************************************************
- * @file      : dt7.h
- * @brief     :
+ * @file      : remote.h
+ * @brief     : dr16遥控器接收文件
  * @history   :
  *  Version     Date            Author          Note
  *  V0.9.0      yyyy-mm-dd      <author>        1. <note>
@@ -12,7 +12,7 @@
  *  All Rights Reserved.
  *******************************************************************************
  */
-/* Define to prevent recursive inclusion -------------------------------------*/
+ /* Define to prevent recursive inclusion -------------------------------------*/
 #ifndef __REMOTE_H_
 #define __REMOTE_H_
 
@@ -23,6 +23,9 @@
 /* Exported constants --------------------------------------------------------*/
 /* Exported types ------------------------------------------------------------*/
 
+/**
+ * @brief dr16包结构体
+ */
 struct DR16DatePack_t {
     int16_t ch0;
     int16_t ch1;
@@ -38,55 +41,32 @@ struct DR16DatePack_t {
     uint16_t key;
 };
 
-class Remote_t
-{
-   public:
-   void Init(UART_HandleTypeDef *_phuart);
-    UartInstance *premote_instance;
-    void SbusToRc(uint8_t *_pdata);
 
-    int GetCh0()
-    {
-        return Pack_.ch0;
-    }
 
-    int GetCh1()
-    {
-        return Pack_.ch1;
-    }
+class Remote_t {
+public:
+    void Init(UART_HandleTypeDef* _phuart);
+    UartInstance* premote_instance;
+    void SbusToRc(uint8_t* _pdata);
 
-    int GetCh2()
-    {
-        return Pack_.ch2;
-    }
+    int GetCh0() { return Pack_.ch0; }
+    int GetCh1() { return Pack_.ch1; }
+    int GetCh2() { return Pack_.ch2; }
+    int GetCh3() { return Pack_.ch3; }
+    int GetS1() { return Pack_.s1; }
+    int GetS2() { return Pack_.s2; }
+    int GetMouseX() { return Pack_.mouse_x; }
+    int GetMouseY() { return Pack_.mouse_y; }
 
-    int GetCh3()
-    {
-        return Pack_.ch3;
-    }
+    /*debug*/
+    uint8_t GetLastS1() { return last_s1_state; }
+    /*debug*/
 
-    int GetS1()
-    {
-        return Pack_.s1;
-    }
-
-    int GetS2()
-    {
-        return Pack_.s2;
-    }
-
-    int GetMouseX()
-    {
-        return Pack_.mouse_x;
-    }
-
-    int GetMouseY()
-    {
-        return Pack_.mouse_y;
-    }
-
-   private:
+private:
     DR16DatePack_t Pack_;
+    /*debug*/
+    uint8_t last_s1_state;
+    /*debug*/
 };
 /* Exported variables --------------------------------------------------------*/
 extern Remote_t remote;
@@ -97,7 +77,7 @@ extern Remote_t remote;
 extern "C" {
 #endif
 
-/* Includes ------------------------------------------------------------------*/
+    /* Includes ------------------------------------------------------------------*/
 #include "usart.h"
 /* Exported macro ------------------------------------------------------------*/
 /* Exported constants --------------------------------------------------------*/
@@ -105,7 +85,7 @@ extern "C" {
 /* Exported variables --------------------------------------------------------*/
 /* Exported function prototypes ----------------------------------------------*/
 
-void RemoteControlInit(UART_HandleTypeDef *_phuart);
+    void RemoteControlInit(UART_HandleTypeDef* _phuart);
 
 #ifdef __cplusplus
 }

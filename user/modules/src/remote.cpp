@@ -12,7 +12,7 @@
  *  All Rights Reserved.
  *******************************************************************************
  */
-/* Includes ------------------------------------------------------------------*/
+ /* Includes ------------------------------------------------------------------*/
 #include "remote.h"
 /* Private macro -------------------------------------------------------------*/
 /* Private constants ---------------------------------------------------------*/
@@ -31,12 +31,16 @@ const int kremote_offest = 1024;
  *
  * @param _pdata Pointer to the Sbus data.
  */
-void Remote_t::SbusToRc(uint8_t *_pdata)
-{
+void Remote_t::SbusToRc(uint8_t* _pdata) {
     Pack_.ch0 = ((_pdata[0] | _pdata[1] << 8) & 0x07FF);
     Pack_.ch1 = ((_pdata[1] >> 3 | _pdata[2] << 5) & 0x07FF);
     Pack_.ch2 = ((_pdata[2] >> 6 | _pdata[3] << 2 | _pdata[4] << 10) & 0x07FF);
     Pack_.ch3 = ((_pdata[4] >> 1 | _pdata[5] << 7) & 0x07FF);
+
+    /*debug*/
+    last_s1_state = Pack_.s1;
+    /*debug*/
+    
     Pack_.s1 = ((_pdata[5] >> 4) & 0x000C) >> 2;
     Pack_.s2 = ((_pdata[5] >> 4) & 0x0003);
     Pack_.mouse_x = _pdata[6] | _pdata[7] << 8;
@@ -58,8 +62,9 @@ void Remote_t::SbusToRc(uint8_t *_pdata)
  *
  * @return void
  */
-static void RemoteControlCallBack()
-{
+static void RemoteControlCallBack() {
+    HAL_UARTEx_ReceiveToIdle_DMA(&huart3, remote.premote_instance->rx_buffer, 18);
+    __HAL_DMA_DISABLE_IT(huart3.hdmarx, DMA_IT_HT);
     remote.SbusToRc(remote.premote_instance->rx_buffer);
 }
 
@@ -70,8 +75,7 @@ static void RemoteControlCallBack()
  *
  * @param _phuart Pointer to the UART handle structure.
  */
-void Remote_t::Init(UART_HandleTypeDef *_phuart)
-{
+void Remote_t::Init(UART_HandleTypeDef* _phuart) {
     UartInitConfig conf;
     conf.huart = _phuart;
     conf.rx_buffer_size = 18;

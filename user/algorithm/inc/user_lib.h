@@ -158,7 +158,10 @@ namespace Math
 };  // namespace Math
 /* Exported variables --------------------------------------------------------*/
 /* Exported function prototypes ----------------------------------------------*/
-
+inline float map(float x, int16_t x_max, int16_t x_min,
+                 float MAX_OUT, float MIN_OUT) {
+    return (x - x_min) * (MAX_OUT - MIN_OUT) / (x_max - x_min) + MIN_OUT;
+}
 #endif
 
 #endif /* __USER_LIB_H_ */

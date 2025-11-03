@@ -69,7 +69,7 @@ class Pid {
 
   void SetMeasure(float _measure) { measure_ = _measure; };
 
-  float GetOutput() { return output_; }
+  float &GetOutput() { return output_; }
   float Calculate();
   void TrapezoidIntergral();
   void ChangingIntegratioRate();
