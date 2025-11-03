@@ -143,7 +143,7 @@ void MX_FREERTOS_Init(void) {
   ctrlcommTaskHandle = osThreadCreate(osThread(ctrlcommTask), NULL);
 
   /* definition and creation of capTask */
-  osThreadDef(capTask, StartCapTask, osPriorityRealtime, 0, 128);
+  osThreadDef(capTask, StartCapTask, osPriorityAboveNormal, 0, 128);
   capTaskHandle = osThreadCreate(osThread(capTask), NULL);
 
   /* definition and creation of refereecommTask */
@@ -158,9 +158,8 @@ void MX_FREERTOS_Init(void) {
 
 /* USER CODE BEGIN Header_StartDefaultTask */
 /**
- * @brief  Function implementing the defaultTask thread.
- * @param  argument: Not used
- * @retval None
+ * @brief 默认任务
+ * @note 控制LED电平翻转
  */
 /* USER CODE END Header_StartDefaultTask */
 void StartDefaultTask(void const * argument)
@@ -168,8 +167,8 @@ void StartDefaultTask(void const * argument)
   /* USER CODE BEGIN StartDefaultTask */
   /* Infinite loop */
   for (;;) {
-    HAL_GPIO_TogglePin(LED_GPIO_Port, LED_Pin);
-    osDelay(100);
+    // HAL_GPIO_TogglePin(LED_GPIO_Port, LED_Pin);
+    // osDelay(100);
   }
   /* USER CODE END StartDefaultTask */
 }
@@ -235,9 +234,9 @@ void StartChassisTask(void const * argument)
 
   /* Infinite loop */
   for (;;) {
-    chassis_start = DWT_GetTimeline_ms();
+    chassis_start = DWT_GetTimeline_ms();                 //更新时间
     ChassisCalcTask();
-    chassis_dt = DWT_GetTimeline_ms() - chassis_start;
+    chassis_dt = DWT_GetTimeline_ms() - chassis_start;    //获取控制频率
     osDelay(1);
   }
   /* USER CODE END StartChassisTask */

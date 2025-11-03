@@ -149,7 +149,9 @@ int Unitree_Motor::Update(uint8_t* pData) {
  * @return HAL_StatusTypeDef The status of the operation.
  */
 void Unitree_Motor::Ctrl() {
+  //设置发送数据格式
   SendData();
+  //
   HAL_GPIO_WritePin(p_port_, pin_, GPIO_PIN_SET);
   HAL_UART_Transmit_DMA(p_huart_, (uint8_t*)&motor_send_.ComData,
                         sizeof(motor_send_.ComData));

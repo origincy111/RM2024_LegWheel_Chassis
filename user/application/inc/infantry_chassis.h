@@ -12,7 +12,7 @@
  *  All Rights Reserved.
  *******************************************************************************
  */
-/* Define to prevent recursive inclusion -------------------------------------*/
+ /* Define to prevent recursive inclusion -------------------------------------*/
 #ifndef __INFANTRY_CHASSIS_H_
 #define __INFANTRY_CHASSIS_H_
 
@@ -20,19 +20,21 @@
 extern "C" {
 #endif
 
-/* Includes ------------------------------------------------------------------*/
-/* Exported macro ------------------------------------------------------------*/
-/* Exported constants --------------------------------------------------------*/
-/* Exported types ------------------------------------------------------------*/
-/* Exported variables --------------------------------------------------------*/
-/* Exported function prototypes ----------------------------------------------*/
-void ChassisMotorInit();
-void UnitreeMotorTask();
-void WheelMotorTask();
-void ChassisCalcTask();
-void CtrlCommTask();
-void CapTask();
-void UITask();
+    /* Includes ------------------------------------------------------------------*/
+    /* Exported macro ------------------------------------------------------------*/
+    /* Exported constants --------------------------------------------------------*/
+    /* Exported types ------------------------------------------------------------*/
+    /* Exported variables --------------------------------------------------------*/
+    /* Exported function prototypes ----------------------------------------------*/
+    void ChassisInit();
+    void UnitreeMotorTask();
+    void WheelMotorTask();
+    void ChassisCalcTask();
+    void CtrlCommTask();
+    void CapTask();
+    void UITask();
+
+    
 
 #ifdef __cplusplus
 }

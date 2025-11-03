@@ -184,7 +184,7 @@ typedef struct {
   ServoComdDataV3 ServoData;  // 电机接收数据结构体，详见motor_msg.h
   int hex_len;                // 接收的16进制命令数组长度, 78
   long long resv_time;        // 接收该命令的时间, 微秒(us)
-  int correct;  // 接收数据是否完整（1完整，0不完整）
+  int correct;        // 接收数据是否完整（1完整，0不完整）
   // 解读得出的电机数据
   unsigned char motor_id;  // 电机ID
   unsigned char mode;      // 0:空闲, 5:开环转动, 10:闭环FOC控制

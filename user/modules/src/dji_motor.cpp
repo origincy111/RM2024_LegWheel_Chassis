@@ -23,12 +23,17 @@ DjiMotor dji_motor;
 /* Private function prototypes -----------------------------------------------*/
 void DjiMotor::Update()
 {
+    //编码值
     encode_ = pdji_motor_instance->rx_buff[0] << 8 | pdji_motor_instance->rx_buff[1];
+    //速度
     spd_ = pdji_motor_instance->rx_buff[2] << 8 | pdji_motor_instance->rx_buff[3];
+    //力矩
     tor_ = pdji_motor_instance->rx_buff[4] << 8 | pdji_motor_instance->rx_buff[5];
+    //温度
     temp_ = pdji_motor_instance->rx_buff[6];
 
     if (init_ == 1) {
+        //计圈
         if (encode_ - last_encode_ > 4096) {
             round_cnt_--;
         } else if (encode_ - last_encode_ < -4096) {
@@ -43,11 +48,19 @@ void DjiMotor::Update()
     ang_real_ = ((encode_ + round_cnt_ * 8192 - encode_offest_) / 8192.0f) * 360.0f;
 }
 
+/**
+ * 接受函数对外接口
+ */
 void DjiMotorCallBack()
 {
     dji_motor.Update();
 }
-
+/**
+ * @brief 大疆电机初始化函数
+ * @param _idx 接收id
+ * @param _phcan can总线结构体指针
+ * @param _init 初始化标志位
+ */
 void DjiMotor::Init(uint32_t _idx, CAN_HandleTypeDef *_phcan, uint8_t _init)
 {
     CanInitConf conf;
@@ -57,7 +70,10 @@ void DjiMotor::Init(uint32_t _idx, CAN_HandleTypeDef *_phcan, uint8_t _init)
     pdji_motor_instance = pCanRegister(&conf);
 }
 
-void DjiMotorSend(CAN_HandleTypeDef *_phcan, uint32_t _idx, int16_t _data1, int16_t _data2, int16_t _data3, int16_t _data4)
+/**
+ * @brief 大疆发送函数
+ */
+void DjiMotorSend(CAN_HandleTypeDef* _phcan, uint32_t _idx, int16_t _data1, int16_t _data2, int16_t _data3, int16_t _data4)
 {
     CAN_TxHeaderTypeDef tx_conf;
     uint8_t tx_data[8];

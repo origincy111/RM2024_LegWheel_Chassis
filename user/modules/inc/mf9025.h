@@ -1,7 +1,7 @@
 /**
  *******************************************************************************
  * @file      : mf9025.h
- * @brief     :
+ * @brief     : 驱动方式为can驱动
  * @history   :
  *  Version     Date            Author          Note
  *  V0.9.0      yyyy-mm-dd      <author>        1. <note>
@@ -12,7 +12,7 @@
  *  All Rights Reserved.
  *******************************************************************************
  */
-/* Define to prevent recursive inclusion -------------------------------------*/
+ /* Define to prevent recursive inclusion -------------------------------------*/
 #ifndef __MF9025_H_
 #define __MF9025_H_
 
@@ -24,16 +24,16 @@
 /* Exported constants --------------------------------------------------------*/
 /* Exported types ------------------------------------------------------------*/
 class Mf9025 {
- public:
+public:
   void Init(CAN_HandleTypeDef* _phcan, uint16_t _id);
   void Update();
   void SetTor(float _tor);
   float GetSpeed();
-  void Send();
+  void SendTor();
   CanInstance* p_motor_instance_;
 
- private:
-  Pid tor_;
+private:
+  Pid tor_;   //力矩
   int8_t temp_;
   int16_t iq_, speed_, encode_, iq_ctrl_;
   float speed_real_;

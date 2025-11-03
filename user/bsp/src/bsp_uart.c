@@ -40,7 +40,8 @@ UartInstance *pUartRegister(UartInitConfig *_pconfig)
         while (1) {
         }
     }
-    UartInstance *instance = (UartInstance *)malloc(sizeof(UartInstance));
+    
+    UartInstance* instance = (UartInstance*)malloc(sizeof(UartInstance));
     memset(instance, 0, sizeof(UartInstance));
 
     instance->huart = _pconfig->huart;
@@ -105,7 +106,7 @@ void HAL_UARTEx_RxEventCallback(UART_HandleTypeDef *huart, uint16_t Size)
         if (huart == uart_instance[i]->huart) {
             if (uart_instance[i]->callback_function != NULL) {
                 uart_instance[i]->callback_function();
-                memset(uart_instance[i]->rx_buffer, 0, Size);  // 接收结束后清空buffer,对于变长数据是必要的
+                //memset(uart_instance[i]->rx_buffer, 0, Size);  // 接收结束后清空buffer,对于变长数据是必要的
             }
             HAL_UARTEx_ReceiveToIdle_DMA(uart_instance[i]->huart, uart_instance[i]->rx_buffer, uart_instance[i]->rx_buffer_size);
             return;
