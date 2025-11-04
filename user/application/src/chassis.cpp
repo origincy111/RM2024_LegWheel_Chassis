@@ -32,10 +32,10 @@ const float k_wheel_radius = 0.076f;
 const float k_phi1_bias = PI + 0.3228859f;
 const float k_phi4_bias = -0.3228859f;
 
-const float k_lf_joint_bias = 5.829f;
-const float k_lb_joint_bias = 2.099f;
-const float k_rf_joint_bias = 4.611f;
-const float k_rb_joint_bias = 2.352f;
+const float k_lf_joint_bias = 5.870f;
+const float k_lb_joint_bias = 2.149f;
+const float k_rf_joint_bias = 4.586f;
+const float k_rb_joint_bias = 2.276f;
 
 const float k_jump_force = 220.0f;
 const float k_jump_time = 0.2f;
@@ -45,7 +45,7 @@ const float k_retract_time = 0.1f;
 static float target_yaw;
 
 /*debug*/
-static float ExpectLen=0.16f;
+static float ExpectLen = 0.16f;
 /*debug*/
 
 /* External variables --------------------------------------------------------*/
@@ -135,7 +135,7 @@ void Chassis::PidInit() {
   left_leg_len_.Init(400.0f, 0.0f, 20.0f, 60.0f, 0.0001f);
   right_leg_len_.Init(400.0f, 0.0f, 20.0f, 60.0f, 0.0001f);
 
-  //防劈叉，roll轴补偿6
+  //防劈叉，roll轴补偿
   anti_crash_.Init(12.0f, 0.0f, 2.0f, 20.0f, 0.001f);
   roll_ctrl_.Init(800.0f, 0.0f, 0.0f, 15.0f, 0.001f);
 
@@ -257,26 +257,28 @@ void Chassis::SynthesizeMotion() {
     yaw_speed_.SetRef(yaw_pos_.Calculate());
   }
 
+  /*debug*/
+  yaw_speed_.SetRef(map(remote.GetCh2(), 660, -660, 5, -5));
+  /*debug*/
+
   //速度环测量值为yaw方向角速度
   yaw_speed_.SetMeasure(INS.Gyro[Z]);
   //计算速度环pid
   yaw_speed_.Calculate();
-
-  yaw_speed_.GetOutput() = map(remote.GetCh2(), 660, -660, 2, -2);
 
   //仅当腿支持力大于等于20(未离地)，进行旋转控制
   if (left_leg_.GetForceNormal() < 20.0f) {
     l_wheel_T_ = lqr_left_.GetWheelTor();
   }
   else {
-    l_wheel_T_ = lqr_left_.GetWheelTor() - yaw_speed_.GetOutput();
+    l_wheel_T_ = lqr_left_.GetWheelTor() + yaw_speed_.GetOutput();
   }
 
   if (right_leg_.GetForceNormal() < 20.0f) {
     r_wheel_T_ = lqr_right_.GetWheelTor();
   }
   else {
-    r_wheel_T_ = lqr_right_.GetWheelTor() + yaw_speed_.GetOutput();
+    r_wheel_T_ = lqr_right_.GetWheelTor() - yaw_speed_.GetOutput();
   }
 
   //防劈叉PID
@@ -297,7 +299,7 @@ void Chassis::Controller() {
   SpeedCalc();  //速度计算
   LQRCalc();    //LQR计算轮力矩、髋关节虚拟力矩
   SynthesizeMotion();   //动作合成，主要是旋转和防劈叉处理
-  
+
   if (remote.GetS1() == 2 && remote.GetLastS1() != 2 && remote.GetS2() == 2) {
     jump_state_ = true;
   }
@@ -330,7 +332,6 @@ void Chassis::StopMotor() {
   rb_joint_.SetMotorT(0.0f);
   l_wheel_.SetTor(0.0f);
   r_wheel_.SetTor(0.0f);
-  anti_crash_.GetOutput() = 0;
 }
 /**
  * @brief 设置腿长
@@ -340,19 +341,24 @@ void Chassis::StopMotor() {
 void Chassis::SetLegLen() {
   if (fabsf(INS.Pitch) < 8.0f) {
     /*debug*/
-    ExpectLen += 0.05f * map(remote.GetCh1(), 660.f, -660.f, 0.03f, -0.03f);
-    
-    if (ExpectLen > 0.36f) {
-      ExpectLen = 0.36f;
+    if (remote.GetS2() == 2) {
+      ExpectLen += 0.05f * map(remote.GetCh1(), 660.f, -660.f, 0.03f, -0.03f);
+
+      if (ExpectLen > 0.36f) {
+        ExpectLen = 0.36f;
+      }
+      if (ExpectLen < 0.1f) {
+        ExpectLen = 0.1f;
+      }
     }
-    if (ExpectLen < 0.1f) {
-      ExpectLen = 0.1f;
+    else {
+      ExpectLen = 0.16f;
     }
-    
+
     left_leg_len_.SetRef(ExpectLen);
     right_leg_len_.SetRef(ExpectLen);
     /*debug*/
-    
+
     // if (remote.GetS1() == 2) {
     //   left_leg_len_.SetRef(0.32f);
     //   right_leg_len_.SetRef(0.32f);

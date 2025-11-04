@@ -78,10 +78,12 @@ void ChassisCalcTask() {
   //     referee_ready) {
 
     //并非直驱，又双叒叕是封装，仅仅传参进电机类
-  chassis.SetMotorTor();
-
-  if (remote.GetS2() != 2)
+  if (remote.GetS2() == 2) {
+    chassis.SetMotorTor();
+  }
+  else {
     chassis.StopMotor();
+  }
 
   // }else {
   //   //刹车
@@ -116,7 +118,7 @@ void WheelMotorTask() {
 
 //板间通信任务
 void CtrlCommTask() {
-  //board_comm.Send();
+  board_comm.Send();
 
 }
 
