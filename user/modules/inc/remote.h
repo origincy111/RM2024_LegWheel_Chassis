@@ -58,15 +58,9 @@ public:
     int GetMouseX() { return Pack_.mouse_x; }
     int GetMouseY() { return Pack_.mouse_y; }
 
-    /*debug*/
-    uint8_t GetLastS1() { return last_s1_state; }
-    /*debug*/
-
 private:
     DR16DatePack_t Pack_;
-    /*debug*/
-    uint8_t last_s1_state;
-    /*debug*/
+
 };
 /* Exported variables --------------------------------------------------------*/
 extern Remote_t remote;

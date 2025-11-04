@@ -32,10 +32,10 @@ const float k_wheel_radius = 0.076f;
 const float k_phi1_bias = PI + 0.3228859f;
 const float k_phi4_bias = -0.3228859f;
 
-const float k_lf_joint_bias = 5.870f;
-const float k_lb_joint_bias = 2.149f;
-const float k_rf_joint_bias = 4.586f;
-const float k_rb_joint_bias = 2.276f;
+const float k_lf_joint_bias = 6.027f;
+const float k_lb_joint_bias = 2.117f;
+const float k_rf_joint_bias = 4.610f;
+const float k_rb_joint_bias = 1.915f;
 
 const float k_jump_force = 220.0f;
 const float k_jump_time = 0.2f;
@@ -46,6 +46,7 @@ static float target_yaw;
 
 /*debug*/
 static float ExpectLen = 0.16f;
+static uint8_t LastS1State = 0;
 /*debug*/
 
 /* External variables --------------------------------------------------------*/
@@ -262,9 +263,13 @@ void Chassis::SynthesizeMotion() {
   /*debug*/
 
   //速度环测量值为yaw方向角速度
-  yaw_speed_.SetMeasure(INS.Gyro[Z]);
+  yaw_speed_.SetMeasure((-l_wheel_.GetSpeed() - r_wheel_.GetSpeed()) * k_wheel_radius * 3.968254f);
   //计算速度环pid
   yaw_speed_.Calculate();
+
+  /*debug*/
+  yaw_speed_.GetOutput() = map(remote.GetCh2(), 660, -660, -3, 3);
+  /*debug*/
 
   //仅当腿支持力大于等于20(未离地)，进行旋转控制
   if (left_leg_.GetForceNormal() < 20.0f) {
@@ -287,8 +292,6 @@ void Chassis::SynthesizeMotion() {
   anti_crash_.Calculate();
 
   //防劈叉处理
-  // left_leg_T_ = -lqr_left_.GetLegTor() + anti_crash_.GetOutput();
-  // right_leg_T_ = -lqr_right_.GetLegTor() - anti_crash_.GetOutput();
   left_leg_T_ = -lqr_left_.GetLegTor() + anti_crash_.GetOutput();
   right_leg_T_ = -lqr_right_.GetLegTor() - anti_crash_.GetOutput();
 }
@@ -300,7 +303,7 @@ void Chassis::Controller() {
   LQRCalc();    //LQR计算轮力矩、髋关节虚拟力矩
   SynthesizeMotion();   //动作合成，主要是旋转和防劈叉处理
 
-  if (remote.GetS1() == 2 && remote.GetLastS1() != 2 && remote.GetS2() == 2) {
+  if (remote.GetS1() == 2 && LastS1State != 2 && remote.GetS2() == 2) {
     jump_state_ = true;
   }
 
@@ -309,6 +312,9 @@ void Chassis::Controller() {
   else
     LegLenCalc(); //腿部虚拟力计算(跳跃以外情况)
   TorCalc();    //VMC计算关节电机力矩
+  /*debug*/
+  LastS1State = remote.GetS1();
+  /*debug*/
 }
 
 // 电机力矩输入模式

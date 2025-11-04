@@ -36,11 +36,6 @@ void Remote_t::SbusToRc(uint8_t* _pdata) {
     Pack_.ch1 = ((_pdata[1] >> 3 | _pdata[2] << 5) & 0x07FF);
     Pack_.ch2 = ((_pdata[2] >> 6 | _pdata[3] << 2 | _pdata[4] << 10) & 0x07FF);
     Pack_.ch3 = ((_pdata[4] >> 1 | _pdata[5] << 7) & 0x07FF);
-
-    /*debug*/
-    last_s1_state = Pack_.s1;
-    /*debug*/
-    
     Pack_.s1 = ((_pdata[5] >> 4) & 0x000C) >> 2;
     Pack_.s2 = ((_pdata[5] >> 4) & 0x0003);
     Pack_.mouse_x = _pdata[6] | _pdata[7] << 8;
