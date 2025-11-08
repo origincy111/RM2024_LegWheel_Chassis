@@ -1,0 +1,8 @@
+[submodule "2024_Parallel_LegWheel_Chassis"]
+	path = 2024_Parallel_LegWheel_Chassis
+	url = https://github.com/L-Turing/Reborn26_Embedded.git
+	branch = Infantry
+[submodule "RM2024_LegWheel_Chassis"]
+	path = RM2024_LegWheel_Chassis
+	url = https://github.com/L-Turing/Reborn26_Embedded.git
+	branch = Infantry
