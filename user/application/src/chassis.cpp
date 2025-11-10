@@ -26,16 +26,16 @@
 /* Private types -------------------------------------------------------------*/
 /* Private variables ---------------------------------------------------------*/
 float k_gravity_comp = 54.6546f;
-const float k_roll_extra_comp_p = 100.0f;
+const float k_roll_extra_comp_p = 400.0f;
 const float k_wheel_radius = 0.076f;
 
 const float k_phi1_bias = PI + 0.3228859f;
 const float k_phi4_bias = -0.3228859f;
 
-const float k_lf_joint_bias = 6.027f;
-const float k_lb_joint_bias = 2.117f;
-const float k_rf_joint_bias = 4.610f;
-const float k_rb_joint_bias = 1.915f;
+const float k_lf_joint_bias = 6.065f;
+const float k_lb_joint_bias = 2.030f;
+const float k_rf_joint_bias = 4.563f;
+const float k_rb_joint_bias = 2.270f;
 
 const float k_jump_force = 220.0f;
 const float k_jump_time = 0.2f;
@@ -47,6 +47,7 @@ static float target_yaw;
 /*debug*/
 static float ExpectLen = 0.16f;
 static uint8_t LastS1State = 0;
+static float gyro = 0;
 /*debug*/
 
 /* External variables --------------------------------------------------------*/
@@ -137,12 +138,12 @@ void Chassis::PidInit() {
   right_leg_len_.Init(400.0f, 0.0f, 20.0f, 60.0f, 0.0001f);
 
   //防劈叉，roll轴补偿
-  anti_crash_.Init(12.0f, 0.0f, 2.0f, 20.0f, 0.001f);
-  roll_ctrl_.Init(800.0f, 0.0f, 0.0f, 15.0f, 0.001f);
+  anti_crash_.Init(16.0f, 0.0f, 2.0f, 20.0f, 0.001f);
+  roll_ctrl_.Init(100.0f, 0.0f, 10.0f, 30.0f, 0.005f);
 
   //yaw轴双环pid
   yaw_pos_.Init(8.0f, 0.0f, 0.0f, 5.0f, 0.001f);
-  yaw_speed_.Init(16.0f, 0.0f, 0.0f, 15.0f, 0.0f);
+  yaw_speed_.Init(16.0f, 0.0f, 0.0f, 20.0f, 0.0f);
 
   //pid增强
   left_leg_len_.Inprovement(PID_CHANGING_INTEGRATION_RATE |
@@ -234,6 +235,7 @@ void Chassis::LegLenCalc() {
   left_leg_len_.SetMeasure(left_leg_.GetLegLen());
   right_leg_len_.SetMeasure(right_leg_.GetLegLen());
   //因为和Jump()是二选一，所以两个函数中都有roll轴补偿计算
+
   roll_comp = k_roll_extra_comp_p * INS.Roll * DEGREE_2_RAD;
   //前馈(重力)+pd+roll轴补偿
 
@@ -259,16 +261,18 @@ void Chassis::SynthesizeMotion() {
   }
 
   /*debug*/
-  yaw_speed_.SetRef(map(remote.GetCh2(), 660, -660, 5, -5));
+  yaw_speed_.SetRef(map(remote.GetCh0(), 660, -660, 5, -5));
   /*debug*/
 
   //速度环测量值为yaw方向角速度
-  yaw_speed_.SetMeasure((-l_wheel_.GetSpeed() - r_wheel_.GetSpeed()) * k_wheel_radius * 3.968254f);
+  // yaw_speed_.SetMeasure((-l_wheel_.GetSpeed() - r_wheel_.GetSpeed()) * k_wheel_radius * 3.968254f);
+  gyro = 0.99 * gyro + 0.01 * INS.Gyro[Z];
+  yaw_speed_.SetMeasure(INS.Gyro[Z]);
   //计算速度环pid
   yaw_speed_.Calculate();
 
   /*debug*/
-  yaw_speed_.GetOutput() = map(remote.GetCh2(), 660, -660, -3, 3);
+  // yaw_speed_.GetOutput() = map(remote.GetCh0(), 660, -660, -5, 5);
   /*debug*/
 
   //仅当腿支持力大于等于20(未离地)，进行旋转控制
@@ -413,10 +417,10 @@ void Chassis::SetFollow() {
 
   if (side_flag_ == 0) {
     if (arm_cos_f32(yaw_motor_.GetAngle() * DEGREE_2_RAD) >= 0.0f) {
-      SetTargetYaw(6812);
+      SetTargetYaw(6812);   //正向
     }
     else {
-      SetTargetYaw(2716);
+      SetTargetYaw(2716);   //侧向
     }
   }
   else {

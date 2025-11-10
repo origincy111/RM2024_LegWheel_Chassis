@@ -77,7 +77,7 @@ void ChassisCalcTask() {
   //     referee.game_robot_state_.power_management_chassis_output == 1 &&
   //     referee_ready) {
 
-    //并非直驱，又双叒叕是封装，仅仅传参进电机类
+  //并非直驱，又双叒叕是封装，仅仅传参进电机类
   if (remote.GetS2() == 2) {
     chassis.SetMotorTor();
   }

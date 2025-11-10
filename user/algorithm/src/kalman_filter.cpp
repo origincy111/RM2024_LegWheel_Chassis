@@ -139,7 +139,7 @@
  *  All Rights Reserved.
  *******************************************************************************
  */
-/* Includes ------------------------------------------------------------------*/
+ /* Includes ------------------------------------------------------------------*/
 #include "kalman_filter.h"
 /* Private macro -------------------------------------------------------------*/
 /* Private constants ---------------------------------------------------------*/
@@ -261,9 +261,9 @@ void Kalman_Filter_Init(KalmanFilter_t* kf, uint8_t xhatSize, uint8_t uSize,
 
   kf->S_data = (float*)user_malloc(sizeof_float * kf->xhatSize * kf->xhatSize);
   kf->temp_matrix_data =
-      (float*)user_malloc(sizeof_float * kf->xhatSize * kf->xhatSize);
+    (float*)user_malloc(sizeof_float * kf->xhatSize * kf->xhatSize);
   kf->temp_matrix_data1 =
-      (float*)user_malloc(sizeof_float * kf->xhatSize * kf->xhatSize);
+    (float*)user_malloc(sizeof_float * kf->xhatSize * kf->xhatSize);
   kf->temp_vector_data = (float*)user_malloc(sizeof_float * kf->xhatSize);
   kf->temp_vector_data1 = (float*)user_malloc(sizeof_float * kf->xhatSize);
   Matrix_Init(&kf->S, kf->xhatSize, kf->xhatSize, (float*)kf->S_data);
@@ -305,8 +305,9 @@ void Kalman_Filter_xhatMinusUpdate(KalmanFilter_t* kf) {
       kf->temp_vector1.numCols = 1;
       kf->MatStatus = Matrix_Multiply(&kf->B, &kf->u, &kf->temp_vector1);
       kf->MatStatus =
-          Matrix_Add(&kf->temp_vector, &kf->temp_vector1, &kf->xhatminus);
-    } else {
+        Matrix_Add(&kf->temp_vector, &kf->temp_vector1, &kf->xhatminus);
+    }
+    else {
       kf->MatStatus = Matrix_Multiply(&kf->F, &kf->xhat, &kf->xhatminus);
     }
   }
@@ -319,7 +320,7 @@ void Kalman_Filter_PminusUpdate(KalmanFilter_t* kf) {
     kf->temp_matrix.numRows = kf->Pminus.numRows;
     kf->temp_matrix.numCols = kf->FT.numCols;
     kf->MatStatus = Matrix_Multiply(
-        &kf->Pminus, &kf->FT, &kf->temp_matrix);  // temp_matrix = F P(k-1) FT
+      &kf->Pminus, &kf->FT, &kf->temp_matrix);  // temp_matrix = F P(k-1) FT
     kf->MatStatus = Matrix_Add(&kf->temp_matrix, &kf->Q, &kf->Pminus);
   }
 }
@@ -333,20 +334,20 @@ void Kalman_Filter_SetK(KalmanFilter_t* kf) {
     kf->temp_matrix1.numRows = kf->temp_matrix.numRows;
     kf->temp_matrix1.numCols = kf->HT.numCols;
     kf->MatStatus =
-        Matrix_Multiply(&kf->temp_matrix, &kf->HT,
-                        &kf->temp_matrix1);  // temp_matrix1 = H·P'(k)·HT
+      Matrix_Multiply(&kf->temp_matrix, &kf->HT,
+                      &kf->temp_matrix1);  // temp_matrix1 = H·P'(k)·HT
     kf->S.numRows = kf->R.numRows;
     kf->S.numCols = kf->R.numCols;
     kf->MatStatus =
-        Matrix_Add(&kf->temp_matrix1, &kf->R, &kf->S);  // S = H P'(k) HT + R
+      Matrix_Add(&kf->temp_matrix1, &kf->R, &kf->S);  // S = H P'(k) HT + R
     kf->MatStatus = Matrix_Inverse(
-        &kf->S, &kf->temp_matrix1);  // temp_matrix1 = inv(H·P'(k)·HT + R)
+      &kf->S, &kf->temp_matrix1);  // temp_matrix1 = inv(H·P'(k)·HT + R)
     kf->temp_matrix.numRows = kf->Pminus.numRows;
     kf->temp_matrix.numCols = kf->HT.numCols;
     kf->MatStatus = Matrix_Multiply(
-        &kf->Pminus, &kf->HT, &kf->temp_matrix);  // temp_matrix = P'(k)·HT
+      &kf->Pminus, &kf->HT, &kf->temp_matrix);  // temp_matrix = P'(k)·HT
     kf->MatStatus =
-        Matrix_Multiply(&kf->temp_matrix, &kf->temp_matrix1, &kf->K);
+      Matrix_Multiply(&kf->temp_matrix, &kf->temp_matrix1, &kf->K);
   }
 }
 void Kalman_Filter_xhatUpdate(KalmanFilter_t* kf) {
@@ -354,17 +355,17 @@ void Kalman_Filter_xhatUpdate(KalmanFilter_t* kf) {
     kf->temp_vector.numRows = kf->H.numRows;
     kf->temp_vector.numCols = 1;
     kf->MatStatus = Matrix_Multiply(
-        &kf->H, &kf->xhatminus, &kf->temp_vector);  // temp_vector = H xhat'(k)
+      &kf->H, &kf->xhatminus, &kf->temp_vector);  // temp_vector = H xhat'(k)
     kf->temp_vector1.numRows = kf->z.numRows;
     kf->temp_vector1.numCols = 1;
     kf->MatStatus =
-        Matrix_Subtract(&kf->z, &kf->temp_vector,
-                        &kf->temp_vector1);  // temp_vector1 = z(k) - H·xhat'(k)
+      Matrix_Subtract(&kf->z, &kf->temp_vector,
+                      &kf->temp_vector1);  // temp_vector1 = z(k) - H·xhat'(k)
     kf->temp_vector.numRows = kf->K.numRows;
     kf->temp_vector.numCols = 1;
     kf->MatStatus = Matrix_Multiply(
-        &kf->K, &kf->temp_vector1,
-        &kf->temp_vector);  // temp_vector = K(k)·(z(k) - H·xhat'(k))
+      &kf->K, &kf->temp_vector1,
+      &kf->temp_vector);  // temp_vector = K(k)·(z(k) - H·xhat'(k))
     kf->MatStatus = Matrix_Add(&kf->xhatminus, &kf->temp_vector, &kf->xhat);
   }
 }
@@ -377,8 +378,8 @@ void Kalman_Filter_P_Update(KalmanFilter_t* kf) {
     kf->MatStatus = Matrix_Multiply(&kf->K, &kf->H,
                                     &kf->temp_matrix);  // temp_matrix = K(k)·H
     kf->MatStatus =
-        Matrix_Multiply(&kf->temp_matrix, &kf->Pminus,
-                        &kf->temp_matrix1);  // temp_matrix1 = K(k)·H·P'(k)
+      Matrix_Multiply(&kf->temp_matrix, &kf->Pminus,
+                      &kf->temp_matrix1);  // temp_matrix1 = K(k)·H·P'(k)
     kf->MatStatus = Matrix_Subtract(&kf->Pminus, &kf->temp_matrix1, &kf->P);
   }
 }
@@ -426,7 +427,8 @@ float* Kalman_Filter_Update(KalmanFilter_t* kf) {
     // 修正方差
     // 5. P(k) = (1-K(k)·H)·P'(k) ==> P(k) = P'(k)-K(k)·H·P'(k)
     Kalman_Filter_P_Update(kf);
-  } else {
+  }
+  else {
     // 无有效量测,仅预测
     // xhat(k) = xhat'(k)
     // P(k) = P'(k)
@@ -473,7 +475,7 @@ static void H_K_R_Adjustment(KalmanFilter_t* kf) {
       // 重构矩阵H
       // rebuild matrix H
       kf->H_data[kf->xhatSize * kf->MeasurementValidNum +
-                 kf->MeasurementMap[i] - 1] = kf->MeasurementDegree[i];
+        kf->MeasurementMap[i] - 1] = kf->MeasurementDegree[i];
       kf->MeasurementValidNum++;
     }
   }
@@ -481,7 +483,7 @@ static void H_K_R_Adjustment(KalmanFilter_t* kf) {
     // 重构矩阵R
     // rebuild matrix R
     kf->R_data[i * kf->MeasurementValidNum + i] =
-        kf->MatR_DiagonalElements[kf->temp[i]];
+      kf->MatR_DiagonalElements[kf->temp[i]];
   }
 
   // 调整矩阵维数

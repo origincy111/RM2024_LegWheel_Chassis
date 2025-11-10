@@ -12,7 +12,7 @@
  *  All Rights Reserved.
  *******************************************************************************
  */
-/* Define to prevent recursive inclusion -------------------------------------*/
+ /* Define to prevent recursive inclusion -------------------------------------*/
 #ifndef __UNITREE_H_
 #define __UNITREE_H_
 
@@ -38,7 +38,7 @@ typedef struct {
   // 定义 数据包头
   unsigned char start[2];  // 包头
   unsigned char
-      motorID;  // 电机ID  0,1,2,3 ...   0xBB 表示向所有电机广播（此时无返回）
+    motorID;  // 电机ID  0,1,2,3 ...   0xBB 表示向所有电机广播（此时无返回）
   unsigned char reserved;
 } COMHead;
 
@@ -57,7 +57,7 @@ typedef struct {
 } LowHzMotorCmd;
 
 typedef struct {      // 以 4个字节一组排列 ，不然编译器会凑整
-                      // 定义 数据
+  // 定义 数据
   uint8_t mode;       // 关节模式选择
   uint8_t ModifyBit = 0xFF;  // 电机控制参数修改位
   uint8_t ReadBit = 0x00;    // 电机控制参数发送位
@@ -69,13 +69,13 @@ typedef struct {      // 以 4个字节一组排列 ，不然编译器会凑整
   int16_t T;  // 期望关节的输出力矩（电机本身的力矩）x256, 7 + 8 描述
   int16_t W;  // 期望关节速度 （电机本身的速度） x128,       8 + 7描述
   int32_t Pos;  // 期望关节位置 x 16384/6.2832,
-                // 14位编码器（主控0点修正，电机关节还是以编码器0点为准）
+  // 14位编码器（主控0点修正，电机关节还是以编码器0点为准）
 
   int16_t K_P;  // 关节刚度系数 x2048  4+11 描述
   int16_t K_W;  // 关节速度系数 x1024  5+10 描述
 
   uint8_t LowHzMotorCmdIndex;  // 电机低频率控制命令的索引, 0-7,
-                               // 分别代表LowHzMotorCmd中的8个字节
+  // 分别代表LowHzMotorCmd中的8个字节
   uint8_t LowHzMotorCmdByte;   // 电机低频率控制命令的字节
 
   COMData32 Res[1];  // 通讯 保留字节  用于实现别的一些通讯内容
@@ -198,7 +198,7 @@ typedef struct {
 } MOTOR_recv;
 
 class Unitree_Motor {
- public:
+public:
   void Init(UART_HandleTypeDef* _p_huart, uint8_t _id, uint8_t _mode, float _ang_bias);
   int SendData();
   void SetMotorData(float _Pos, float _T, float _W, float _K_P, float _K_W);
@@ -211,7 +211,7 @@ class Unitree_Motor {
   void Ctrl();
   void Receive();
 
- private:
+private:
   UART_HandleTypeDef* p_huart_;
   uint8_t id_, mode_;
   GPIO_TypeDef* p_port_;
