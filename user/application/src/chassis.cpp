@@ -26,7 +26,7 @@
 /* Private types -------------------------------------------------------------*/
 /* Private variables ---------------------------------------------------------*/
 float k_gravity_comp = 54.6546f;
-const float k_roll_extra_comp_p = 100.0f;
+const float k_roll_extra_comp_p = 400.0f;
 const float k_wheel_radius = 0.076f;
 
 const float k_phi1_bias = PI + 0.3228859f;
@@ -136,12 +136,12 @@ void Chassis::PidInit() {
   right_leg_len_.Init(400.0f, 0.0f, 20.0f, 60.0f, 0.0001f);
 
   //防劈叉，roll轴补偿6
-  anti_crash_.Init(12.0f, 0.0f, 2.0f, 20.0f, 0.001f);
-  roll_ctrl_.Init(800.0f, 0.0f, 0.0f, 15.0f, 0.001f);
+  anti_crash_.Init(16.0f, 0.0f, 2.0f, 20.0f, 0.001f);
+  roll_ctrl_.Init(100.0f, 0.0f, 0.0f, 30.0f, 0.001f);
 
   //yaw轴双环pid
   yaw_pos_.Init(8.0f, 0.0f, 0.0f, 5.0f, 0.001f);
-  yaw_speed_.Init(16.0f, 0.0f, 0.0f, 15.0f, 0.0f);
+  yaw_speed_.Init(16.0f, 0.0f, 0.0f, 0.0f, 0.0f);
 
   //pid增强
   left_leg_len_.Inprovement(PID_CHANGING_INTEGRATION_RATE |
@@ -262,7 +262,7 @@ void Chassis::SynthesizeMotion() {
   //计算速度环pid
   yaw_speed_.Calculate();
 
-  yaw_speed_.GetOutput() = map(remote.GetCh2(), 660, -660, 3, -3);
+  yaw_speed_.GetOutput() = map(remote.GetCh0(), 660, -660, 3, -3);
 
   //仅当腿支持力大于等于20(未离地)，进行旋转控制
   if (left_leg_.GetForceNormal() < 20.0f) {
