@@ -108,6 +108,7 @@ int main(void)
   MX_UART5_Init();
   MX_CRC_Init();
   MX_TIM2_Init();
+  MX_UART4_Init();
   /* USER CODE BEGIN 2 */
   DWT_Init(180);
   // while (BMI088_init(&hspi2, 1) != BMI088_NO_ERROR)
@@ -225,8 +226,7 @@ void Error_Handler(void)
   }
   /* USER CODE END Error_Handler_Debug */
 }
-
-#ifdef  USE_FULL_ASSERT
+#ifdef USE_FULL_ASSERT
 /**
   * @brief  Reports the name of the source file and the source line number
   *         where the assert_param error has occurred.
