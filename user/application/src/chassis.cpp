@@ -32,10 +32,10 @@ const float k_wheel_radius = 0.076f;
 const float k_phi1_bias = PI + 0.3228859f;
 const float k_phi4_bias = -0.3228859f;
 
-const float k_lf_joint_bias = 5.829f;
-const float k_lb_joint_bias = 2.099f;
-const float k_rf_joint_bias = 4.611f;
-const float k_rb_joint_bias = 2.352f;
+const float k_lf_joint_bias = 1.146f;
+const float k_lb_joint_bias = 0.690f;
+const float k_rf_joint_bias = 4.559f;
+const float k_rb_joint_bias = 2.099f;
 
 const float k_jump_force = 220.0f;
 const float k_jump_time = 0.2f;
@@ -45,7 +45,7 @@ const float k_retract_time = 0.1f;
 static float target_yaw;
 
 /*debug*/
-static float ExpectLen=0.16f;
+static float ExpectLen = 0.16f;
 /*debug*/
 
 /* External variables --------------------------------------------------------*/
@@ -118,8 +118,8 @@ void Chassis::MotorInit() {
   SetTargetYaw(6812);
 
   //关节电机初始化
-  lf_joint_.Init(&huart2, 0x01, 10, k_lf_joint_bias);
-  lb_joint_.Init(&huart2, 0x00, 10, k_lb_joint_bias);
+  lf_joint_.Init(&huart2, 0x00, 10, k_lf_joint_bias);
+  lb_joint_.Init(&huart2, 0x01, 10, k_lb_joint_bias);
   rf_joint_.Init(&huart1, 0x01, 10, k_rf_joint_bias);
   rb_joint_.Init(&huart1, 0x00, 10, k_rb_joint_bias);
 
@@ -297,7 +297,7 @@ void Chassis::Controller() {
   SpeedCalc();  //速度计算
   LQRCalc();    //LQR计算轮力矩、髋关节虚拟力矩
   SynthesizeMotion();   //动作合成，主要是旋转和防劈叉处理
-  
+
   if (remote.GetS1() == 2 && remote.GetLastS1() != 2 && remote.GetS2() == 2) {
     jump_state_ = true;
   }
@@ -341,18 +341,18 @@ void Chassis::SetLegLen() {
   if (fabsf(INS.Pitch) < 8.0f) {
     /*debug*/
     ExpectLen += 0.05f * map(remote.GetCh1(), 660.f, -660.f, 0.03f, -0.03f);
-    
+
     if (ExpectLen > 0.36f) {
       ExpectLen = 0.36f;
     }
     if (ExpectLen < 0.1f) {
       ExpectLen = 0.1f;
     }
-    
+
     left_leg_len_.SetRef(ExpectLen);
     right_leg_len_.SetRef(ExpectLen);
     /*debug*/
-    
+
     // if (remote.GetS1() == 2) {
     //   left_leg_len_.SetRef(0.32f);
     //   right_leg_len_.SetRef(0.32f);

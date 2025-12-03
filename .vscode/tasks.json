@@ -11,7 +11,7 @@
                 "-f",
                 "target/stm32f4x.cfg",
                 "-c",
-                "program build/EC_DM_Board.elf verify reset exit"
+                "program out/build/debug/EC_DM_Board.elf verify reset exit"
             ],
             "problemMatcher": [],
             "group": {
