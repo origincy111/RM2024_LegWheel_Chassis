@@ -262,21 +262,21 @@ void Chassis::SynthesizeMotion() {
   //计算速度环pid
   yaw_speed_.Calculate();
 
-  yaw_speed_.GetOutput() = map(remote.GetCh2(), 660, -660, 2, -2);
+  yaw_speed_.GetOutput() = map(remote.GetCh2(), 660, -660, 3, -3);
 
   //仅当腿支持力大于等于20(未离地)，进行旋转控制
   if (left_leg_.GetForceNormal() < 20.0f) {
     l_wheel_T_ = lqr_left_.GetWheelTor();
   }
   else {
-    l_wheel_T_ = lqr_left_.GetWheelTor() - yaw_speed_.GetOutput();
+    l_wheel_T_ = lqr_left_.GetWheelTor() + yaw_speed_.GetOutput();
   }
 
   if (right_leg_.GetForceNormal() < 20.0f) {
     r_wheel_T_ = lqr_right_.GetWheelTor();
   }
   else {
-    r_wheel_T_ = lqr_right_.GetWheelTor() + yaw_speed_.GetOutput();
+    r_wheel_T_ = lqr_right_.GetWheelTor() - yaw_speed_.GetOutput();
   }
 
   //防劈叉PID
