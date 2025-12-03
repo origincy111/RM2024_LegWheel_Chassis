@@ -32,10 +32,10 @@ const float k_wheel_radius = 0.076f;
 const float k_phi1_bias = PI + 0.3228859f;
 const float k_phi4_bias = -0.3228859f;
 
-const float k_lf_joint_bias = 1.146f;
-const float k_lb_joint_bias = 0.690f;
-const float k_rf_joint_bias = 4.559f;
-const float k_rb_joint_bias = 2.099f;
+const float k_lf_joint_bias = 1.093f;
+const float k_lb_joint_bias = 0.765f;
+const float k_rf_joint_bias = 4.635f;
+const float k_rb_joint_bias = 2.104f;
 
 const float k_jump_force = 220.0f;
 const float k_jump_time = 0.2f;
