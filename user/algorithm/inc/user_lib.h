@@ -12,7 +12,7 @@
  *  All Rights Reserved.
  *******************************************************************************
  */
-/* Define to prevent recursive inclusion -------------------------------------*/
+ /* Define to prevent recursive inclusion -------------------------------------*/
 #ifndef __USER_LIB_H_
 #define __USER_LIB_H_
 
@@ -52,8 +52,7 @@
 /**
  * @brief Namespace containing mathematical functions.
  */
-namespace Math
-{
+namespace Math {
     /**
      * @brief Calculates the square root of a given number.
      * @param _x The number to calculate the square root of.
@@ -131,14 +130,14 @@ namespace Math
      * @param v The 3D vector to normalize.
      * @return The normalized vector.
      */
-    float *Norm3d(float *v);
+    float* Norm3d(float* v);
 
     /**
      * @brief Calculates the norm (magnitude) of a 3D vector.
      * @param v The 3D vector.
      * @return The norm of the vector.
      */
-    float NormOf3d(float *v);
+    float NormOf3d(float* v);
 
     /**
      * @brief Calculates the cross product of two 3D vectors.
@@ -146,7 +145,7 @@ namespace Math
      * @param v2 The second 3D vector.
      * @param res The resulting cross product vector.
      */
-    void Cross3d(float *v1, float *v2, float *res);
+    void Cross3d(float* v1, float* v2, float* res);
 
     /**
      * @brief Calculates the dot product of two 3D vectors.
@@ -154,7 +153,7 @@ namespace Math
      * @param v2 The second 3D vector.
      * @return The dot product of the two vectors.
      */
-    float Dot3d(float *v1, float *v2);
+    float Dot3d(float* v1, float* v2);
 };  // namespace Math
 /* Exported variables --------------------------------------------------------*/
 /* Exported function prototypes ----------------------------------------------*/
