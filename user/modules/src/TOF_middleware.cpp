@@ -52,9 +52,9 @@ void TOF_t::Init(UART_HandleTypeDef* _phuart, uint8_t slave_addr) {
 }
 
 /**
- * @brief 更新TOF传感器数据
+ * @brief 更新TOF传感器数据(Request to Send)
  */
-void TOF_t::Update() {
+void TOF_t::TOF_RTS() {
     // 发送读取距离和置信度寄存器的命令
     // 从TOF_DISTANCE寄存器开始，读取2个寄存器
     MODBUS_SendReadReg(&modbus_, TOF_DISTANCE, 2);

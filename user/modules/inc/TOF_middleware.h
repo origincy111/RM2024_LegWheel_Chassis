@@ -31,7 +31,7 @@ extern "C" {
     class TOF_t {
     public:
         void Init(UART_HandleTypeDef* _phuart, uint8_t slave_addr = 0x01);
-        void Update();
+        void TOF_RTS();
         uint16_t GetDistance() { return distance_; }
         uint16_t GetConfidence() { return confidence_; }
         uint8_t IsValid() { return valid_flag_; }

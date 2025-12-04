@@ -107,6 +107,7 @@ private:
   uint32_t dwt_cnt_controller_, dwt_cnt_observer;
   bool jump_state_ = false;         //当前跳跃标准位
   bool last_jump_state_ = false;    //上次跳跃标准位
+  float jump_dist_;
   float controller_dt_;     //控制周期
   float observer_dt_;       //速度观测周期
   int16_t ang_yaw_;

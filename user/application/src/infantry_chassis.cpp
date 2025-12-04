@@ -23,6 +23,7 @@
 #include "cmsis_os.h"
 #include "referee.h"
 #include "remote.h"
+#include "TOF_middleware.h"
 /* Private macro -------------------------------------------------------------*/
 /* Private constants ---------------------------------------------------------*/
 /* Private types -------------------------------------------------------------*/
@@ -53,6 +54,8 @@ void ChassisInit() {
   chassis.PidInit();
   //卡尔曼速度观测器初始化
   chassis.SpeedEstInit();
+  //激光测距初始化
+  tof.Init(&huart4);
 }
 
 void ChassisCalcTask() {

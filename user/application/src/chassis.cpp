@@ -21,6 +21,7 @@
 #include "kalman_filter.h"
 #include "remote.h"
 #include "user_lib.h"
+#include "TOF_middleware.h"
 /* Private macro -------------------------------------------------------------*/
 /* Private constants ---------------------------------------------------------*/
 /* Private types -------------------------------------------------------------*/
@@ -468,11 +469,14 @@ void Chassis::SetState() {
     lqr_left_.SetNowDist(0.0f);
     lqr_right_.SetNowDist(0.0f);
   }
+  /* debug */
+  // if (board_comm.GetJumpFlag()) {
+  //   //跳跃标志位置1
+  //   jump_state_ = true;
+  // }
+  /* debug */
 
-  if (board_comm.GetJumpFlag()) {
-    //跳跃标志位置1
-    jump_state_ = true;
-  }
+  tof.GetDistance();
 }
 
 // 相关功能函数
