@@ -48,7 +48,19 @@ void TOF_t::Init(UART_HandleTypeDef* _phuart, uint8_t slave_addr) {
     conf.rx_buffer_size = 32;
     conf.callback_function = TOFCallback;
     premote_instance = pUartRegister(&conf);
-    return;
+
+
+    //开机指令
+    modbus_.tx_buffer_[0] = 0x01;
+    modbus_.tx_buffer_[1] = 0x06;
+    modbus_.tx_buffer_[2] = 0x00;
+    modbus_.tx_buffer_[3] = 0x0A;
+    modbus_.tx_buffer_[4] = 0x00;
+    modbus_.tx_buffer_[5] = 0x01;
+    modbus_.tx_buffer_[6] = 0x68;
+    modbus_.tx_buffer_[7] = 0x08;
+    modbus_.tx_length_ = 8;
+    HAL_UART_Transmit(modbus_.huart_, modbus_.tx_buffer_, modbus_.tx_length_, 1000);
 }
 
 /**
@@ -57,7 +69,7 @@ void TOF_t::Init(UART_HandleTypeDef* _phuart, uint8_t slave_addr) {
 void TOF_t::TOF_RTS() {
     // 发送读取距离和置信度寄存器的命令
     // 从TOF_DISTANCE寄存器开始，读取2个寄存器
-    MODBUS_SendReadReg(&modbus_, TOF_DISTANCE, 2);
+    MODBUS_SendReadReg(&modbus_, TOF_DISTANCE, 1);
 
     // 处理接收到的数据
     ProcessData();

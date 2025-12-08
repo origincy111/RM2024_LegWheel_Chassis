@@ -476,7 +476,7 @@ void Chassis::SetState() {
   // }
   /* debug */
 
-  tof.GetDistance();
+  jump_dist_ = tof.GetDistance();
 }
 
 // 相关功能函数

@@ -43,7 +43,6 @@ extern "C" {
         uint8_t Master_Address_;         // 主机地址
         uint8_t Slave_Address_;          // 从机地址
         uint8_t recv_flag_;              // 1完成 0未完成
-        uint8_t send_flag_;              // 发送标志
         uint16_t rx_length_;             // 接收数据长度
         uint16_t tx_length_;             // 发送数据长度
         uint8_t rx_buffer_[32];          // 接收缓冲区

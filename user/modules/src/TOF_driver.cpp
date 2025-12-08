@@ -36,7 +36,6 @@ void MODBUS_Init(MODBUS_t* modbus, UART_HandleTypeDef* huart, uint8_t master_add
     modbus->Master_Address_ = master_addr;
     modbus->Slave_Address_ = slave_addr;
     modbus->recv_flag_ = 0;
-    modbus->send_flag_ = 0;
     modbus->rx_length_ = 0;
     modbus->tx_length_ = 0;
 
@@ -71,7 +70,6 @@ void MODBUS_SendReadReg(MODBUS_t* modbus, uint16_t reg_addr, uint16_t reg_num) {
 
     // 发送数据
     HAL_UART_Transmit(modbus->huart_, modbus->tx_buffer_, modbus->tx_length_, 1000);
-    modbus->send_flag_ = 1;
 }
 
 /**
@@ -83,6 +81,21 @@ void MODBUS_SendReadReg(MODBUS_t* modbus, uint16_t reg_addr, uint16_t reg_num) {
 void MODBUS_SendWriteReg(MODBUS_t* modbus, uint16_t reg_addr, uint16_t reg_value) {
     uint8_t index = 0;
 
+    // // 构建Modbus RTU帧
+    // modbus->tx_buffer_[index++] = modbus->Slave_Address_;  // 从机地址
+    // modbus->tx_buffer_[index++] = MODBUS_WRITE_REG_CMD;    // 功能码
+    // modbus->tx_buffer_[index++] = (reg_addr >> 8) & 0xFF;  // 寄存器地址高字节
+    // modbus->tx_buffer_[index++] = reg_addr & 0xFF;         // 寄存器地址低字节
+    // modbus->tx_buffer_[index++] = (reg_value >> 8) & 0xFF; // 寄存器值高字节
+    // modbus->tx_buffer_[index++] = reg_value & 0xFF;        // 寄存器值低字节
+
+    // // 计算CRC
+    // uint16_t crc = MODBUS_CRC16(modbus->tx_buffer_, index);
+    // modbus->tx_buffer_[index++] = crc & 0xFF;              // CRC低字节
+    // modbus->tx_buffer_[index++] = (crc >> 8) & 0xFF;       // CRC高字节
+
+    // modbus->tx_length_ = index;
+
     // 构建Modbus RTU帧
     modbus->tx_buffer_[index++] = modbus->Slave_Address_;  // 从机地址
     modbus->tx_buffer_[index++] = MODBUS_WRITE_REG_CMD;    // 功能码
@@ -93,14 +106,13 @@ void MODBUS_SendWriteReg(MODBUS_t* modbus, uint16_t reg_addr, uint16_t reg_value
 
     // 计算CRC
     uint16_t crc = MODBUS_CRC16(modbus->tx_buffer_, index);
-    modbus->tx_buffer_[index++] = crc & 0xFF;              // CRC低字节
-    modbus->tx_buffer_[index++] = (crc >> 8) & 0xFF;       // CRC高字节
+    modbus->tx_buffer_[index++] = 0x74;              // CRC低字节
+    modbus->tx_buffer_[index++] = 0x0A;       // CRC高字节
 
     modbus->tx_length_ = index;
 
     // 发送数据
     HAL_UART_Transmit(modbus->huart_, modbus->tx_buffer_, modbus->tx_length_, 1000);
-    modbus->send_flag_ = 1;
 }
 
 /**
@@ -113,7 +125,7 @@ void MODBUS_ReceiveHandler(MODBUS_t* modbus) {
         uint8_t data;
         HAL_UART_Receive(modbus->huart_, &data, 1, 0);
 
-        // 将数据存入接收缓冲区
+        // 将数据存入接收缓冲区.
         if (modbus->rx_length_ < sizeof(modbus->rx_buffer_)) {
             modbus->rx_buffer_[modbus->rx_length_++] = data;
         }

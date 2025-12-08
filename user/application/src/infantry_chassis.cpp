@@ -122,7 +122,7 @@ void WheelMotorTask() {
 //板间通信任务
 void CtrlCommTask() {
   board_comm.Send();
-
+  tof.TOF_RTS();
 }
 
 
