@@ -19,14 +19,13 @@
 #include "bsp_dwt.h"
 #include "ins.h"
 #include "kalman_filter.h"
-#include "remote.h"
 #include "user_lib.h"
 #include "TOF_middleware.h"
 /* Private macro -------------------------------------------------------------*/
 /* Private constants ---------------------------------------------------------*/
 /* Private types -------------------------------------------------------------*/
 /* Private variables ---------------------------------------------------------*/
-float k_gravity_comp = 54.6546f;
+float k_gravity_comp = 97.7746;
 const float k_roll_extra_comp_p = 400.0f;
 const float k_wheel_radius = 0.076f;
 
@@ -112,7 +111,7 @@ void Chassis::MotorInit() {
   r_wheel_.Init(&hcan1, 0x142);
 
   //yaw轴电机初始化,采用绝对值模式(开机后回到固定位置)
-  yaw_motor_.Init(0x206, &hcan1, ABSOLUTE_FLAG);
+  yaw_motor_.Init(0x205, &hcan2, ABSOLUTE_FLAG);
   yaw_motor_.SetOffest(6812);
 
   //设置初始yaw轴零点
@@ -263,8 +262,6 @@ void Chassis::SynthesizeMotion() {
   //计算速度环pid
   yaw_speed_.Calculate();
 
-  yaw_speed_.GetOutput() = map(remote.GetCh0(), 660, -660, 3, -3);
-
   //仅当腿支持力大于等于20(未离地)，进行旋转控制
   if (left_leg_.GetForceNormal() < 20.0f) {
     l_wheel_T_ = lqr_left_.GetWheelTor();
@@ -298,10 +295,6 @@ void Chassis::Controller() {
   SpeedCalc();  //速度计算
   LQRCalc();    //LQR计算轮力矩、髋关节虚拟力矩
   SynthesizeMotion();   //动作合成，主要是旋转和防劈叉处理
-
-  if (remote.GetS1() == 2 && remote.GetLastS1() != 2 && remote.GetS2() == 2) {
-    jump_state_ = true;
-  }
 
   if (jump_state_ == true)
     Jump();     //跳跃函数
@@ -341,44 +334,31 @@ void Chassis::StopMotor() {
 void Chassis::SetLegLen() {
   if (fabsf(INS.Pitch) < 8.0f) {
     /*debug*/
-    ExpectLen += 0.05f * map(remote.GetCh1(), 660.f, -660.f, 0.03f, -0.03f);
+    // ExpectLen += 0.05f * map(remote.GetCh1(), 660.f, -660.f, 0.03f, -0.03f);
 
-    if (ExpectLen > 0.36f) {
-      ExpectLen = 0.36f;
+    // if (ExpectLen > 0.36f) {
+    //   ExpectLen = 0.36f;
+    // }
+    // if (ExpectLen < 0.1f) {
+    //   ExpectLen = 0.1f;
+    // }
+
+    // left_leg_len_.SetRef(ExpectLen);
+    // right_leg_len_.SetRef(ExpectLen);
+    // /*debug*/
+
+    if (board_comm.GetLongLenFlag() && !board_comm.GetShortLenFlag()) {
+      left_leg_len_.SetRef(0.3f);
+      right_leg_len_.SetRef(0.3f);
     }
-    if (ExpectLen < 0.1f) {
-      ExpectLen = 0.1f;
+    else if (!board_comm.GetLongLenFlag() && board_comm.GetShortLenFlag()) {
+      left_leg_len_.SetRef(0.1f);
+      right_leg_len_.SetRef(0.1f);
     }
-
-    left_leg_len_.SetRef(ExpectLen);
-    right_leg_len_.SetRef(ExpectLen);
-    /*debug*/
-
-    // if (remote.GetS1() == 2) {
-    //   left_leg_len_.SetRef(0.32f);
-    //   right_leg_len_.SetRef(0.32f);
-    // }
-    // else if (remote.GetS1() == 1) {
-    //   left_leg_len_.SetRef(0.16f);
-    //   right_leg_len_.SetRef(0.16f);
-    // }
-    // else {
-    //   left_leg_len_.SetRef(0.24f);
-    //   right_leg_len_.SetRef(0.24f);
-    // }
-
-    // if (board_comm.GetLongLenFlag() && !board_comm.GetShortLenFlag()) {
-    //   left_leg_len_.SetRef(0.3f);
-    //   right_leg_len_.SetRef(0.3f);
-    // }
-    // else if (!board_comm.GetLongLenFlag() && board_comm.GetShortLenFlag()) {
-    //   left_leg_len_.SetRef(0.08f);
-    //   right_leg_len_.SetRef(0.08f);
-    // }
-    // else {
-    //   left_leg_len_.SetRef(0.18f);
-    //   right_leg_len_.SetRef(0.18f);
-    // }
+    else {
+      left_leg_len_.SetRef(0.2f);
+      right_leg_len_.SetRef(0.2f);
+    }
   }
   else {
     left_leg_len_.SetRef(0.08f);
@@ -453,7 +433,7 @@ void Chassis::SetState() {
     arm_sin_f32(yaw_motor_.GetAngle() * DEGREE_2_RAD) *
     board_comm.GetXSpeed();
 
-  y_spd_ = map(remote.GetCh3(), 660, -660, 1000, -1000);
+  // y_spd_ = map(remote.GetCh3(), 660, -660, 1000, -1000);
 
   if (fabsf((y_spd_ / 2000.0f) * set_spd_ - target_speed_) / controller_dt_ <
       5.0f) {

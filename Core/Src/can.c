@@ -64,7 +64,7 @@ void MX_CAN1_Init(void)
   hcan1_filter.FilterMaskIdLow = 0x0000;
   hcan1_filter.FilterFIFOAssignment = CAN_FilterFIFO0;
   hcan1_filter.FilterActivation = ENABLE;
-  hcan1_filter.SlaveStartFilterBank = 13;
+  hcan1_filter.SlaveStartFilterBank = 14;
 
   HAL_CAN_ConfigFilter(&hcan1, &hcan1_filter);
   HAL_CAN_Start(&hcan1);

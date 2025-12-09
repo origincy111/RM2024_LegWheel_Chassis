@@ -32,7 +32,6 @@
 #include "bmi088_driver.h"
 #include "bsp_dwt.h"
 #include "infantry_chassis.h"
-#include "remote.h"
 /* USER CODE END Includes */
 
 /* Private typedef -----------------------------------------------------------*/

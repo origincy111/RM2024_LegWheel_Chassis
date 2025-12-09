@@ -112,9 +112,12 @@ void CanSetDlcAndRtr(CanInstance* _pinstance, uint8_t _length, uint8_t _rtr) {
 static void CanRxCallBack(CAN_HandleTypeDef* _phcan, uint32_t _Fifo) {
     static CAN_RxHeaderTypeDef rx_header;
     uint8_t rx_buff[8];
-    while (HAL_CAN_GetRxFifoFillLevel(_phcan, _Fifo)) {
-        HAL_CAN_GetRxMessage(_phcan, _Fifo, &rx_header, rx_buff);
-        for (uint8_t i = 0; i < 16; i++) {
+    //while (HAL_CAN_GetRxFifoFillLevel(_phcan, _Fifo)) {
+    HAL_CAN_GetRxMessage(_phcan, _Fifo, &rx_header, rx_buff);
+    if (rx_header.StdId == 0x115) {
+        volatile int16_t a = 2;
+    }
+    for (uint8_t i = 0; i < 16; i++) {
             if (rx_header.StdId == pcan_instance[i]->rx_id && _phcan == pcan_instance[i]->hcan) {
                 //使用自定义回调函数
                 if (pcan_instance[i]->pCanCallBack != NULL) {
@@ -125,7 +128,8 @@ static void CanRxCallBack(CAN_HandleTypeDef* _phcan, uint32_t _Fifo) {
                 }
             }
         }
-    }
+        
+    //}
 }
 
 /**

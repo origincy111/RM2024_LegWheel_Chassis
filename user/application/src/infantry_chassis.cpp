@@ -41,15 +41,15 @@ bool ui_init = false;
  */
 void ChassisInit() {
   //遥控器初始化
-  remote.Init(&huart3);
+  // remote.Init(&huart3);
   //裁判系统初始化
   referee.Init(&huart5);
   //底盘电机初始化
   chassis.MotorInit();
   //板间通信初始化
-  board_comm.Init(&hcan1, 0x101);
+  board_comm.Init(&hcan2, 0x114);
   //电容初始化
-  cap.Init(&hcan2, 0x600);
+  cap.Init(&hcan1, 0x600);
   //底盘pid初始化
   chassis.PidInit();
   //卡尔曼速度观测器初始化
@@ -76,22 +76,26 @@ void ChassisCalcTask() {
   }
   // 仅当云台就绪时，向底盘电机发送指令
   // 调试所需要先注释掉（无云台）
+
   // if (board_comm.GetReadyFlag() == 1 &&
   //     referee.game_robot_state_.power_management_chassis_output == 1 &&
   //     referee_ready) {
-
-    //并非直驱，又双叒叕是封装，仅仅传参进电机类
-
-  if (remote.GetS2() != 2)
-    chassis.StopMotor();
-  else {
+  if (board_comm.GetReadyFlag() == 1) {
     chassis.SetMotorTor();
   }
+  else {
+    //刹车
+    chassis.StopMotor();
+  }
 
-  // }else {
-  //   //刹车
+  //并非直驱，又双叒叕是封装，仅仅传参进电机类
+  // if (remote.GetS2() != 2)
   //   chassis.StopMotor();
+  // else {
+  //   chassis.SetMotorTor();
   // }
+
+
   referee_last_state =
     referee.game_robot_state_.power_management_chassis_output;
 }
