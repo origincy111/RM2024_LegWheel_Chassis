@@ -12,7 +12,7 @@
  *  All Rights Reserved.
  *******************************************************************************
  */
-/* Includes ------------------------------------------------------------------*/
+ /* Includes ------------------------------------------------------------------*/
 #include "dji_motor.h"
 /* Private macro -------------------------------------------------------------*/
 /* Private constants ---------------------------------------------------------*/
@@ -21,8 +21,7 @@
 DjiMotor dji_motor;
 /* External variables --------------------------------------------------------*/
 /* Private function prototypes -----------------------------------------------*/
-void DjiMotor::Update()
-{
+void DjiMotor::Update() {
     //编码值
     encode_ = pdji_motor_instance->rx_buff[0] << 8 | pdji_motor_instance->rx_buff[1];
     //速度
@@ -36,10 +35,12 @@ void DjiMotor::Update()
         //计圈
         if (encode_ - last_encode_ > 4096) {
             round_cnt_--;
-        } else if (encode_ - last_encode_ < -4096) {
+        }
+        else if (encode_ - last_encode_ < -4096) {
             round_cnt_++;
         }
-    } else {
+    }
+    else {
         encode_offest_ = encode_;
         init_ = 1;
     }
@@ -51,8 +52,7 @@ void DjiMotor::Update()
 /**
  * 接受函数对外接口
  */
-void DjiMotorCallBack()
-{
+void DjiMotorCallBack() {
     dji_motor.Update();
 }
 /**
@@ -61,8 +61,7 @@ void DjiMotorCallBack()
  * @param _phcan can总线结构体指针
  * @param _init 初始化标志位
  */
-void DjiMotor::Init(uint32_t _idx, CAN_HandleTypeDef *_phcan, uint8_t _init)
-{
+void DjiMotor::Init(uint32_t _idx, CAN_HandleTypeDef* _phcan, uint8_t _init) {
     CanInitConf conf;
     init_ = _init;
     conf.hcan = _phcan;
@@ -73,8 +72,7 @@ void DjiMotor::Init(uint32_t _idx, CAN_HandleTypeDef *_phcan, uint8_t _init)
 /**
  * @brief 大疆发送函数
  */
-void DjiMotorSend(CAN_HandleTypeDef* _phcan, uint32_t _idx, int16_t _data1, int16_t _data2, int16_t _data3, int16_t _data4)
-{
+void DjiMotorSend(CAN_HandleTypeDef* _phcan, uint32_t _idx, int16_t _data1, int16_t _data2, int16_t _data3, int16_t _data4) {
     CAN_TxHeaderTypeDef tx_conf;
     uint8_t tx_data[8];
     tx_conf.StdId = _idx;
@@ -89,8 +87,8 @@ void DjiMotorSend(CAN_HandleTypeDef* _phcan, uint32_t _idx, int16_t _data1, int1
     tx_data[5] = _data3;
     tx_data[6] = _data4 >> 8;
     tx_data[7] = _data4;
-    if (HAL_CAN_AddTxMessage(_phcan, &tx_conf, tx_data, (uint32_t *)CAN_TX_MAILBOX0) != HAL_OK) {
-        if (HAL_CAN_AddTxMessage(_phcan, &tx_conf, tx_data, (uint32_t *)CAN_TX_MAILBOX1) != HAL_OK) {
+    if (HAL_CAN_AddTxMessage(_phcan, &tx_conf, tx_data, (uint32_t*)CAN_TX_MAILBOX0) != HAL_OK) {
+        if (HAL_CAN_AddTxMessage(_phcan, &tx_conf, tx_data, (uint32_t*)CAN_TX_MAILBOX1) != HAL_OK) {
             while (1) {
             }
         }

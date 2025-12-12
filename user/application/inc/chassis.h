@@ -94,7 +94,7 @@ private:
     yaw_speed_;
   float left_leg_F_, right_leg_F_, roll_comp;
   float l_wheel_T_, r_wheel_T_, left_leg_T_, right_leg_T_;
-  float set_spd_;   //速度增益系数，开启超电2.5，普通1.5
+  float set_spd_gain_;   //速度增益系数，开启超电2.5，普通1.5
   float target_speed_;  //目标速度
   float target_yaw_;    //目标yaw，做底盘跟随和小陀螺用
   float target_dist_;

@@ -203,11 +203,11 @@ void Chassis::LQRCalc() {
   }
   //向lqr类传入数据
   lqr_left_.SetData(dist_, vel_, -(INS.Pitch) * DEGREE_2_RAD, -INS.Gyro[X],
-                    -((left_leg_.GetTheta() - 0.04) + (right_leg_.GetTheta() - 0.04)) / 2,
+                    -((left_leg_.GetTheta()) + (right_leg_.GetTheta())) / 2,
                     (left_leg_.GetDotTheta() + right_leg_.GetDotTheta()) / 2,
                     left_leg_.GetLegLen(), left_leg_.GetForceNormal());
   lqr_right_.SetData(dist_, vel_, -(INS.Pitch) * DEGREE_2_RAD, -INS.Gyro[X],
-                     -((left_leg_.GetTheta() - 0.04) + (right_leg_.GetTheta() - 0.04)) / 2,
+                     -((left_leg_.GetTheta()) + (right_leg_.GetTheta())) / 2,
                      (left_leg_.GetDotTheta() + right_leg_.GetDotTheta()) / 2,
                      right_leg_.GetLegLen(), right_leg_.GetForceNormal());
   //lqr K增益计算控制量
@@ -356,8 +356,8 @@ void Chassis::SetLegLen() {
       right_leg_len_.SetRef(0.1f);
     }
     else {
-      left_leg_len_.SetRef(0.12f);
-      right_leg_len_.SetRef(0.12f);
+      left_leg_len_.SetRef(0.1f);
+      right_leg_len_.SetRef(0.1f);
     }
   }
   else {
@@ -410,10 +410,10 @@ void Chassis::SetFollow() {
  */
 void Chassis::SetSpd() {
   if (board_comm.GetCapFlag()) {
-    set_spd_ = 2.5f;
+    set_spd_gain_ = 2.5f;
   }
   else {
-    set_spd_ = 1.5f;
+    set_spd_gain_ = 1.5f;
   }
 }
 /**
@@ -435,13 +435,13 @@ void Chassis::SetState() {
 
   // y_spd_ = map(remote.GetCh3(), 660, -660, 1000, -1000);
 
-  if (fabsf((y_spd_ / 2000.0f) * set_spd_ - target_speed_) / controller_dt_ <
+  if (fabsf((y_spd_ / 2000.0f) * set_spd_gain_ - target_speed_) / controller_dt_ <
       5.0f) {
     //当期望加速度小于5,直接设定速度
-    target_speed_ = (y_spd_ / 2000.0f) * set_spd_;
+    target_speed_ = (y_spd_ / 2000.0f) * set_spd_gain_;
   }
   else {
-    target_speed_ += Math::Sign((y_spd_ / 2000.0f) * set_spd_ - target_speed_) *
+    target_speed_ += Math::Sign((y_spd_ / 2000.0f) * set_spd_gain_ - target_speed_) *
       4.f * controller_dt_;    //当期望加速度大于5时,作加速度为4的匀加速运动
   }
   if (board_comm.GetReadyFlag() == 0) {
