@@ -111,9 +111,11 @@ void CapTask() {
 //宇树A1电机驱动函数
 void UnitreeMotorTask() {
   chassis.lf_joint_.Ctrl();
+  DWT_Delay(0.0001f);
   chassis.rf_joint_.Ctrl();
-  DWT_Delay(0.0003f);
+  DWT_Delay(0.0002f);
   chassis.lb_joint_.Ctrl();
+  DWT_Delay(0.0001f);
   chassis.rb_joint_.Ctrl();
 }
 

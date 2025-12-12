@@ -32,10 +32,10 @@ const float k_wheel_radius = 0.076f;
 const float k_phi1_bias = PI + 0.3228859f;
 const float k_phi4_bias = -0.3228859f;
 
-const float k_lf_joint_bias = 1.093f;
-const float k_lb_joint_bias = 0.765f;
-const float k_rf_joint_bias = 4.635f;
-const float k_rb_joint_bias = 2.104f;
+const float k_lf_joint_bias = 0.204f;
+const float k_lb_joint_bias = 2.628f;
+const float k_rf_joint_bias = 4.737f;
+const float k_rb_joint_bias = 4.933f;
 
 const float k_jump_force = 220.0f;
 const float k_jump_time = 0.2f;
@@ -107,8 +107,8 @@ static void YawMotorCallback() {
  */
 void Chassis::MotorInit() {
   //轮电机初始化
-  l_wheel_.Init(&hcan1, 0x141);
-  r_wheel_.Init(&hcan1, 0x142);
+  l_wheel_.Init(&hcan1, 0x142);
+  r_wheel_.Init(&hcan1, 0x141);
 
   //yaw轴电机初始化,采用绝对值模式(开机后回到固定位置)
   yaw_motor_.Init(0x205, &hcan2, ABSOLUTE_FLAG);
@@ -118,8 +118,8 @@ void Chassis::MotorInit() {
   SetTargetYaw(6812);
 
   //关节电机初始化
-  lf_joint_.Init(&huart2, 0x00, 10, k_lf_joint_bias);
-  lb_joint_.Init(&huart2, 0x01, 10, k_lb_joint_bias);
+  lf_joint_.Init(&huart2, 0x01, 10, k_lf_joint_bias);
+  lb_joint_.Init(&huart2, 0x00, 10, k_lb_joint_bias);
   rf_joint_.Init(&huart1, 0x01, 10, k_rf_joint_bias);
   rb_joint_.Init(&huart1, 0x00, 10, k_rb_joint_bias);
 
@@ -311,8 +311,8 @@ void Chassis::SetMotorTor() {
   rf_joint_.SetMotorT(right_leg_.GetT2());
   rb_joint_.SetMotorT(right_leg_.GetT1());
 
-  l_wheel_.SetTor(-l_wheel_T_);
-  r_wheel_.SetTor(r_wheel_T_);
+  l_wheel_.SetTor(l_wheel_T_);
+  r_wheel_.SetTor(-r_wheel_T_);
 }
 
 
@@ -514,8 +514,8 @@ void Chassis::Jump() {
 // 速度融合函数，卡尔曼观测速度，加速度
 void Chassis::SpeedCalc() {
   //轮角速度 = 电机反馈角速度 + 前方膝关节角速度 - 机体俯仰角速度 
-  left_w_wheel_ = -l_wheel_.GetSpeed() + left_leg_.GetPhi2Speed() - INS.Gyro[X];
-  right_w_wheel_ = r_wheel_.GetSpeed() + right_leg_.GetPhi2Speed() - INS.Gyro[X];
+  left_w_wheel_ = l_wheel_.GetSpeed() + left_leg_.GetPhi2Speed() - INS.Gyro[X];
+  right_w_wheel_ = -r_wheel_.GetSpeed() + right_leg_.GetPhi2Speed() - INS.Gyro[X];
 
   //机体速度 = 轮角速度*轮半径+摆杆与竖直夹角*腿长+变腿长速度在水平方向分量
   left_v_body_ = left_w_wheel_ * k_wheel_radius +
