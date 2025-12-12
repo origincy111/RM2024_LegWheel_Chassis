@@ -356,8 +356,8 @@ void Chassis::SetLegLen() {
       right_leg_len_.SetRef(0.1f);
     }
     else {
-      left_leg_len_.SetRef(0.2f);
-      right_leg_len_.SetRef(0.2f);
+      left_leg_len_.SetRef(0.12f);
+      right_leg_len_.SetRef(0.12f);
     }
   }
   else {
