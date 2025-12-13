@@ -204,11 +204,11 @@ void Chassis::LQRCalc() {
   //向lqr类传入数据
   lqr_left_.SetData(dist_, vel_, -(INS.Pitch) * DEGREE_2_RAD, -INS.Gyro[X],
                     -((left_leg_.GetTheta() - 0.04) + (right_leg_.GetTheta() - 0.04)) / 2,
-                    (left_leg_.GetDotTheta() + right_leg_.GetDotTheta()) / 2,
+                    -(left_leg_.GetDotTheta() + right_leg_.GetDotTheta()) / 2,
                     left_leg_.GetLegLen(), left_leg_.GetForceNormal());
   lqr_right_.SetData(dist_, vel_, -(INS.Pitch) * DEGREE_2_RAD, -INS.Gyro[X],
                      -((left_leg_.GetTheta() - 0.04) + (right_leg_.GetTheta() - 0.04)) / 2,
-                     (left_leg_.GetDotTheta() + right_leg_.GetDotTheta()) / 2,
+                     -(left_leg_.GetDotTheta() + right_leg_.GetDotTheta()) / 2,
                      right_leg_.GetLegLen(), right_leg_.GetForceNormal());
   //lqr K增益计算控制量
   lqr_left_.Calc();
@@ -528,10 +528,10 @@ void Chassis::SpeedCalc() {
   right_w_wheel_ = -r_wheel_.GetSpeed() + right_leg_.GetPhi2Speed() - INS.Gyro[X];
 
   //机体速度 = 轮角速度*轮半径+摆杆与竖直夹角*腿长+变腿长速度在水平方向分量
-  left_v_body_ = left_w_wheel_ * k_wheel_radius +
+  left_v_body_ = left_w_wheel_ * k_wheel_radius -
     left_leg_.GetLegLen() * left_leg_.GetDotTheta() +
     left_leg_.GetLegSpeed() * arm_sin_f32(left_leg_.GetTheta());
-  right_v_body_ = right_w_wheel_ * k_wheel_radius +
+  right_v_body_ = right_w_wheel_ * k_wheel_radius -
     right_leg_.GetLegLen() * right_leg_.GetDotTheta() +
     right_leg_.GetLegSpeed() * arm_sin_f32(right_leg_.GetTheta());
 
