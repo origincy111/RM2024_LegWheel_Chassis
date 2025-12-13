@@ -110,9 +110,9 @@ void Chassis::MotorInit() {
   l_wheel_.Init(&hcan1, 0x142);
   r_wheel_.Init(&hcan1, 0x141);
 
-  //yaw轴电机初始化,采用绝对值模式(开机后回到固定位置)
+  //yaw轴电机初始化
   yaw_motor_.Init(0x205, &hcan2, ABSOLUTE_FLAG);
-  yaw_motor_.SetOffest(6812);
+  yaw_motor_.SetOffest(2059);
 
   //设置初始yaw轴零点
   SetTargetYaw(6812);
@@ -135,13 +135,13 @@ void Chassis::PidInit() {
   left_leg_len_.Init(400.0f, 0.0f, 20.0f, 60.0f, 0.0001f);
   right_leg_len_.Init(400.0f, 0.0f, 20.0f, 60.0f, 0.0001f);
 
-  //防劈叉，roll轴补偿6
+  //防劈叉，roll轴补偿
   anti_crash_.Init(16.0f, 0.0f, 2.0f, 20.0f, 0.001f);
   roll_ctrl_.Init(100.0f, 0.0f, 0.0f, 30.0f, 0.001f);
 
   //yaw轴双环pid
-  yaw_pos_.Init(8.0f, 0.0f, 0.0f, 5.0f, 0.001f);
-  yaw_speed_.Init(16.0f, 0.0f, 0.0f, 0.0f, 0.0f);
+  yaw_pos_.Init(2.0f, 0.0f, 0.0f, 2.0f, 0.001f);
+  yaw_speed_.Init(8.0f, 0.0f, 0.0f, 10.0f, 0.0f);
 
   //pid增强
   left_leg_len_.Inprovement(PID_CHANGING_INTEGRATION_RATE |
@@ -171,12 +171,12 @@ void Chassis::LegCalc() {
   left_leg_.SetBodyData(INS.Pitch * DEGREE_2_RAD, INS.MotionAccel_n[Z]);
   right_leg_.SetBodyData(INS.Pitch * DEGREE_2_RAD, INS.MotionAccel_n[Z]);
   //传入关节电机数据
-  left_leg_.SetLegData(-lb_joint_.GetAngle() + k_phi1_bias, lb_joint_.GetSpeed(),
-                       -lf_joint_.GetAngle() + k_phi4_bias, lf_joint_.GetSpeed(),
+  left_leg_.SetLegData(-lb_joint_.GetAngle() + k_phi1_bias, -lb_joint_.GetSpeed(),
+                       -lf_joint_.GetAngle() + k_phi4_bias, -lf_joint_.GetSpeed(),
                        -lb_joint_.GetTor(), -lf_joint_.GetTor());
   right_leg_.SetLegData(
-    rb_joint_.GetAngle() + k_phi1_bias, -rb_joint_.GetSpeed(),
-    rf_joint_.GetAngle() + k_phi4_bias, -rf_joint_.GetSpeed(),
+    rb_joint_.GetAngle() + k_phi1_bias, rb_joint_.GetSpeed(),
+    rf_joint_.GetAngle() + k_phi4_bias, rf_joint_.GetSpeed(),
     rb_joint_.GetTor(), rf_joint_.GetTor());
   //根据上一句传入的数据进行腿的状态计算
   left_leg_.LegCalc();
@@ -203,11 +203,11 @@ void Chassis::LQRCalc() {
   }
   //向lqr类传入数据
   lqr_left_.SetData(dist_, vel_, -(INS.Pitch) * DEGREE_2_RAD, -INS.Gyro[X],
-                    -((left_leg_.GetTheta()) + (right_leg_.GetTheta())) / 2,
+                    -((left_leg_.GetTheta() - 0.04) + (right_leg_.GetTheta() - 0.04)) / 2,
                     (left_leg_.GetDotTheta() + right_leg_.GetDotTheta()) / 2,
                     left_leg_.GetLegLen(), left_leg_.GetForceNormal());
   lqr_right_.SetData(dist_, vel_, -(INS.Pitch) * DEGREE_2_RAD, -INS.Gyro[X],
-                     -((left_leg_.GetTheta()) + (right_leg_.GetTheta())) / 2,
+                     -((left_leg_.GetTheta() - 0.04) + (right_leg_.GetTheta() - 0.04)) / 2,
                      (left_leg_.GetDotTheta() + right_leg_.GetDotTheta()) / 2,
                      right_leg_.GetLegLen(), right_leg_.GetForceNormal());
   //lqr K增益计算控制量
@@ -240,6 +240,10 @@ void Chassis::LegLenCalc() {
   right_leg_F_ = right_leg_len_.Calculate() + k_gravity_comp - roll_comp;
 }
 
+
+/**
+ * @brief 转向闭环控制(真正的底盘跟随控制)(以yaw轴电机编码值为measure)
+ */
 void Chassis::SynthesizeMotion() {
   //设置yaw轴位置环PID目标值和观测值
   yaw_pos_.SetRef((ang_yaw_ / 8192.0f) * 2 * PI);         //目标值
@@ -262,19 +266,23 @@ void Chassis::SynthesizeMotion() {
   //计算速度环pid
   yaw_speed_.Calculate();
 
+  // /*debug*/
+  // yaw_speed_.GetOutput() = 0;
+  // /*debug*/
+
   //仅当腿支持力大于等于20(未离地)，进行旋转控制
   if (left_leg_.GetForceNormal() < 20.0f) {
     l_wheel_T_ = lqr_left_.GetWheelTor();
   }
   else {
-    l_wheel_T_ = lqr_left_.GetWheelTor() + yaw_speed_.GetOutput();
+    l_wheel_T_ = lqr_left_.GetWheelTor() - yaw_speed_.GetOutput();
   }
 
   if (right_leg_.GetForceNormal() < 20.0f) {
     r_wheel_T_ = lqr_right_.GetWheelTor();
   }
   else {
-    r_wheel_T_ = lqr_right_.GetWheelTor() - yaw_speed_.GetOutput();
+    r_wheel_T_ = lqr_right_.GetWheelTor() + yaw_speed_.GetOutput();
   }
 
   //防劈叉PID
@@ -283,8 +291,6 @@ void Chassis::SynthesizeMotion() {
   anti_crash_.Calculate();
 
   //防劈叉处理
-  // left_leg_T_ = -lqr_left_.GetLegTor() + anti_crash_.GetOutput();
-  // right_leg_T_ = -lqr_right_.GetLegTor() - anti_crash_.GetOutput();
   left_leg_T_ = -lqr_left_.GetLegTor() + anti_crash_.GetOutput();
   right_leg_T_ = -lqr_right_.GetLegTor() - anti_crash_.GetOutput();
 }
@@ -356,8 +362,8 @@ void Chassis::SetLegLen() {
       right_leg_len_.SetRef(0.1f);
     }
     else {
-      left_leg_len_.SetRef(0.1f);
-      right_leg_len_.SetRef(0.1f);
+      left_leg_len_.SetRef(0.12f);
+      right_leg_len_.SetRef(0.12f);
     }
   }
   else {
@@ -372,6 +378,7 @@ void Chassis::SetLegLen() {
  */
 void Chassis::SetFollow() {
 
+  //侧向判断
   if (fabsf(board_comm.GetYSpeed()) > 0.0f && side_flag_ == 1) {
     side_flag_ = 0;
   }
@@ -380,23 +387,25 @@ void Chassis::SetFollow() {
     side_flag_ = 1;
   }
 
-  if (side_flag_ == 0) {
+  if (side_flag_ == 0) {    //正向对敌
     if (arm_cos_f32(yaw_motor_.GetAngle() * DEGREE_2_RAD) >= 0.0f) {
-      SetTargetYaw(6812);
+      SetTargetYaw(2059);
     }
     else {
-      SetTargetYaw(2716);
+      SetTargetYaw(6155);
     }
   }
-  else {
+  else {      //侧向对敌
     if (arm_sin_f32(yaw_motor_.GetAngle() * DEGREE_2_RAD) >= 0.0f) {
-      SetTargetYaw(668);
+      SetTargetYaw(4107);
     }
     else {
-      SetTargetYaw(4764);
+      SetTargetYaw(11);
     }
   }
 
+
+  //更新旋转pid的ref
   ang_yaw_ = yaw_motor_.GetEncode();
   if (ang_yaw_ - target_yaw_ > 4096) {
     ang_yaw_ -= 8192;
@@ -428,10 +437,12 @@ void Chassis::SetState() {
   SetSpd();
 
   //y轴速度(前进后退速度)   
-  float y_spd_ = +arm_cos_f32(yaw_motor_.GetAngle() * DEGREE_2_RAD) *
+  volatile float y_spd_ = +arm_cos_f32(yaw_motor_.GetAngle() * DEGREE_2_RAD) *
     board_comm.GetYSpeed() +
     arm_sin_f32(yaw_motor_.GetAngle() * DEGREE_2_RAD) *
     board_comm.GetXSpeed();
+
+  //y_spd_ = board_comm.GetYSpeed() * 0.5f;
 
   // y_spd_ = map(remote.GetCh3(), 660, -660, 1000, -1000);
 
@@ -449,12 +460,11 @@ void Chassis::SetState() {
     lqr_left_.SetNowDist(0.0f);
     lqr_right_.SetNowDist(0.0f);
   }
-  /* debug */
-  // if (board_comm.GetJumpFlag()) {
-  //   //跳跃标志位置1
-  //   jump_state_ = true;
-  // }
-  /* debug */
+
+  if (board_comm.GetJumpFlag()) {
+    //跳跃标志位置1
+    jump_state_ = true;
+  }
 
   jump_dist_ = tof.GetDistance();
 }
@@ -531,7 +541,7 @@ void Chassis::SpeedCalc() {
   //离地检测
   if (left_leg_.GetForceNormal() < 20.0f &&
       right_leg_.GetForceNormal() < 20.0f) {
-    //vel_m = 0;
+    vel_m = 0;
   }
 
   // 使用kf同时估计加速度和速度,滤波更新
