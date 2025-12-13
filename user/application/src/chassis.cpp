@@ -140,8 +140,8 @@ void Chassis::PidInit() {
   roll_ctrl_.Init(100.0f, 0.0f, 0.0f, 30.0f, 0.001f);
 
   //yaw轴双环pid
-  yaw_pos_.Init(2.0f, 0.0f, 0.0f, 2.0f, 0.001f);
-  yaw_speed_.Init(8.0f, 0.0f, 0.0f, 10.0f, 0.0f);
+  yaw_pos_.Init(2.0f, 0.0f, 0.0f, 2.0f, 0.05f);
+  yaw_speed_.Init(4.0f, 0.0f, 0.0f, 2.0f, 0.0f);
 
   //pid增强
   left_leg_len_.Inprovement(PID_CHANGING_INTEGRATION_RATE |
@@ -178,7 +178,7 @@ void Chassis::LegCalc() {
     rb_joint_.GetAngle() + k_phi1_bias, rb_joint_.GetSpeed(),
     rf_joint_.GetAngle() + k_phi4_bias, rf_joint_.GetSpeed(),
     rb_joint_.GetTor(), rf_joint_.GetTor());
-  //根据上一句传入的数据进行腿的状态计算
+  //根据上一句传入的数据进行腿的状态]计算
   left_leg_.LegCalc();
   right_leg_.LegCalc();
   //Jacobian矩阵计算
