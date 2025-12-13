@@ -12,7 +12,7 @@
  *  All Rights Reserved.
  *******************************************************************************
  */
-/* Define to prevent recursive inclusion -------------------------------------*/
+ /* Define to prevent recursive inclusion -------------------------------------*/
 #ifndef __DJI_MOTOR_H_
 #define __DJI_MOTOR_H_
 
@@ -30,7 +30,7 @@ typedef enum {
 /* Exported types ------------------------------------------------------------*/
 
 class DjiMotor {
- public:
+public:
   CanInstance* pdji_motor_instance;   //can总线指针
   void Update();              //Dji读取反馈函数
   void Init(uint32_t _idx, CAN_HandleTypeDef* _phcan, uint8_t _init);
@@ -39,7 +39,7 @@ class DjiMotor {
   int GetSpd() { return spd_; }
   void SetOffest(int16_t _offest) { encode_offest_ = _offest; }
 
- private:
+private:
   int16_t round_cnt_;
   int16_t encode_;
   int16_t encode_offest_;

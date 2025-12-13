@@ -49,6 +49,7 @@ void DjiMotor::Update() {
     ang_real_ = ((encode_ + round_cnt_ * 8192 - encode_offest_) / 8192.0f) * 360.0f;
 }
 
+
 /**
  * 接受函数对外接口
  */
