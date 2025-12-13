@@ -25,7 +25,7 @@
 /* Private constants ---------------------------------------------------------*/
 /* Private types -------------------------------------------------------------*/
 /* Private variables ---------------------------------------------------------*/
-float k_gravity_comp = 97.7746;
+float k_gravity_comp = 76.5478;
 const float k_roll_extra_comp_p = 400.0f;
 const float k_wheel_radius = 0.076f;
 
